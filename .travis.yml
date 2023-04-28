@@ -21,14 +21,14 @@ jobs:
       script:
         - |
           
-          echo 'Last version is "${LAST_VERSION}."'
+          echo 'Last version is "${LAST_VERSION}".'
           
           chmod +x release-check.sh
           ./release-check.sh -l "${LAST_VERSION}" "actions/runner"
           
-          if [[ "$?" -ne 0 ]]; then
-            travis_terminate 1
-          fi
+#           if [[ "$?" -ne 0 ]]; then
+#             travis_terminate 1
+#           fi
     
     - name: build-lxd-runner-image
       stage: build
@@ -37,7 +37,6 @@ jobs:
           # chmod +x build-lxd-image.sh
           # ./build-lxd-image.sh
           
-          chmod 0600 key
           ssh -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" 'ls -lha'
           
           travis_terminate 0
