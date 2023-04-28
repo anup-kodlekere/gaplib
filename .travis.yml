@@ -21,7 +21,7 @@ jobs:
       script:
         - |
           
-          echo "Last version is "${LAST_VERSION}"
+          echo "Last version is ${LAST_VERSION}"
           
           chmod +x release-check.sh
           ./release-check.sh -l "${LAST_VERSION}" "actions/runner"
