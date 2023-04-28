@@ -9,6 +9,11 @@ ensure_lxd() {
 }
 
 build_image_in_container() {
+  
+  local BUILD_PREREQS_PATH="/home/ubuntu/remote-build/files"
+  local DOTNET_SDK="dotnet-sdk-7.0.100-linux-ppc64le.tar.gz"
+  local PATCH_FILE="runner-ppc64le-final.patch"
+
   lxc launch ubuntu:22.04 gha-builder
   lxc ls
   
@@ -16,7 +21,13 @@ build_image_in_container() {
   sleep 10
   
   echo "Copy the build-image script into gha-builder"
-  lxc file push /home/ubuntu/remote-build/files/build-image.sh gha-builder/home/ubuntu/
+  lxc file push "${BUILD_PREREQS_PATH}/build-image.sh" gha-builder/home/ubuntu/
+  
+  echo "Copy the dotnet-sdk into gha-builder"
+  lxc file push "${BUILD_PREREQS_PATH}/${DOTNET_SDK}" gha-builder/home/ubuntu/
+  
+  echo "Copy the patch file into gha-builder"
+  lxc file push "${BUILD_PREREQS_PATH}/${PATCH_FILE}" gha-builder/home/ubuntu/
   
   echo "Setting executable permissions on build-image.sh"
   lxc exec gha-builder -- chmod +x /home/ubuntu/build-image.sh
