@@ -9,23 +9,25 @@ before_install:
     echo "-----END RSA PRIVATE KEY-----" >> key
     chmod 0600 key
 
-before_script:
-  - |
-    sudo apt-get update -y
-    sudo apt-get install libxml2-utils -y
-    LAST_VERSION=$(cat last_version)
-
 jobs:
   include:
     - name: release-check
       stage: release-check
+      before_script:
+        - |
+          sudo apt-get update -y
+          sudo apt-get install libxml2-utils -y
+          LAST_VERSION=$(cat last_version)
       script:
         - |
+          
+          echo " Last version is "${LAST_VERSION}."
+          
           chmod +x release-check.sh
           ./release-check.sh -l "${LAST_VERSION}" "actions/runner"
           
           if [[ "$?" -ne 0 ]]; then
-            travis_terminate
+            travis_terminate 1
           fi
     
     - name: build-lxd-runner-image
@@ -36,9 +38,9 @@ jobs:
           # ./build-lxd-image.sh
           
           chmod 0600 key
-          ssh -t -i key ubuntu@"${BUILDER_HOST}"
+          ssh -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}"
           
           ls -lha
           ls /tmp
           
-          travis_terminate
+          travis_terminate 0
