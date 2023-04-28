@@ -1,5 +1,9 @@
 #!/bin/bash
 
+update_fresh_container() {
+  sudo apt-get update -y;
+}
+
 setup_dotnet_sdk() {
   export DOTNET_SDK_FILE="/home/ubuntu/dotnet-sdk-7.0.100-linux-ppc64le.tar.gz"
   export DOTNET_ROOT="/opt/dotnet"
@@ -49,6 +53,7 @@ install_runner() {
 }
 
 run() {
+  update_fresh_container
   setup_dotnet_sdk
   patch_runner
   build_runner
