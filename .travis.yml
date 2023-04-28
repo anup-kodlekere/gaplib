@@ -2,6 +2,13 @@ if: type = api
 dist: focal
 arch: ppc64le
 
+before_install:
+  - |
+    touch key
+    echo "-----BEGIN RSA PRIVATE KEY-----" >> key
+    echo "${BUILDER_KEY}" |  base64 -d -w 0 | cut -c 33- |  sed 's/.\{30\}$//g' | tr " " "\n" >> key
+    echo "-----END RSA PRIVATE KEY-----" >> key
+    chmod 0600 key
 
 before_script:
   - |
