@@ -70,7 +70,7 @@ do
     echo "New release: $latest_release"
     echo "Previous release: $last_release"
     
-    export NEW_RUNNER_EXISTS=true
+    export BUILD_IMAGE=true
 
     if [ -n "$last_release" ]; then
       sed -i '' "s|$project     .*|$project     $latest_release|" "$last_release_path"
@@ -88,6 +88,6 @@ do
     echo "No new releases for $project"
     echo "Current release: $last_release"
     
-    export NEW_RUNNER_EXISTS=false
+    export BUILD_IMAGE=false
   fi
 done
