@@ -34,9 +34,6 @@ jobs:
       stage: build
       script:
         - |
-          # chmod +x build-lxd-image.sh
-          # ./build-lxd-image.sh
           
-          ssh -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" 'ls -lha'
-          
-          travis_terminate 0
+          ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
+            bash -s < setup-lxd-container.sh
