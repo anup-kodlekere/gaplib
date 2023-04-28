@@ -22,9 +22,12 @@ jobs:
         - |
           chmod +x release-check.sh
           ./release-check.sh -l 'v2.302.1' "actions/runner"
+          
+          if [[ "$?" -ne 0 ]]; then
+            travis_terminate
+          fi
     
     - name: build-lxd-runner-image
-      if: env(NEW_RUNNER_EXISTS) == "true"
       script:
         - |
           # chmod +x build-lxd-image.sh
