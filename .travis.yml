@@ -1,6 +1,12 @@
 if: type = api
-
+dist: focal
 arch: ppc64le
+
+
+before_script:
+  - |
+    sudo apt-get update -y
+    sudo apt-get install libxml2-utils -y
 
 jobs:
   include:
