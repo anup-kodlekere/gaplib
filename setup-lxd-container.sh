@@ -9,7 +9,7 @@ ensure_lxd() {
 }
 
 build_image_in_container() {
-  lxd launch ubuntu:22.04 gha-builder
+  lxc launch ubuntu:22.04 gha-builder
   lxc ls
   
   echo "Copy the build-image script into gha-builder"
