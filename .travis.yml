@@ -34,7 +34,7 @@ jobs:
       stage: build
       script:
         - |
-          
+          ls -lha
           echo "Copying necessary files to BUILDER_VM"
           
           scp -q -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \ 
