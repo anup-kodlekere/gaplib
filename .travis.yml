@@ -2,7 +2,7 @@ dist: focal
 arch: ppc64le
 
 env:
-    - BUILD_IMAGE=false
+    - BUILD_IMAGE=true
 
 before_install:
   - |
