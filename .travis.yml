@@ -34,11 +34,9 @@ jobs:
       stage: build
       script:
         - |
-          ls -lha
           echo "Copying necessary files to BUILDER_VM"
           
-          scp -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \ 
-            build-image.sh "ubuntu@${BUILDER_HOST}:/home/ubuntu/remote-build/files/"
+          scp -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no build-image.sh "ubuntu@${BUILDER_HOST}:/home/ubuntu/remote-build/files/"
 
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
             bash -s < setup-build-env.sh
