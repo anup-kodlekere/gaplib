@@ -2,7 +2,6 @@ dist: focal
 arch: ppc64le
 
 env:
-  global:
     - BUILD_IMAGE=false
 
 before_install:
@@ -37,7 +36,7 @@ jobs:
     
     - name: build-lxd-runner-image
       stage: build
-      #if: env(BUILD_IMAGE) == "true"
+      if: env(BUILD_IMAGE) = true
       script:
         - |
           echo "Copying necessary files to BUILDER_VM"
