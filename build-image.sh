@@ -24,7 +24,7 @@ patch_runner() {
   git clone -q https://github.com/actions/runner
   cd runner
   git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
-  git apply "${WORKING_DIR}/files/runner-ppc64le-final.patch"
+  git apply /home/ubuntu/runner-ppc64le-final.patch
   
   #TODO: Check if patch is applied correctly
 }
