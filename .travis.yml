@@ -1,4 +1,3 @@
-if: type = api
 dist: focal
 arch: ppc64le
 
@@ -18,6 +17,7 @@ before_script:
 jobs:
   include:
     - name: release-check
+      stage: release-check
       script:
         - |
           chmod +x release-check.sh
@@ -28,13 +28,14 @@ jobs:
           fi
     
     - name: build-lxd-runner-image
+      stage: build
       script:
         - |
           # chmod +x build-lxd-image.sh
           # ./build-lxd-image.sh
           
-          chmod 0600 "${BUILDER_KEY}"
-          ssh -i "${BUILDER_KEY}" ubuntu@"${BUILDER_HOST}"
+          chmod 0600 key
+          ssh -i key ubuntu@"${BUILDER_HOST}"
           
           ls -lha
           ls /tmp
