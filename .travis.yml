@@ -37,7 +37,7 @@ jobs:
     
     - name: build-lxd-runner-image
       stage: build
-      if: env(BUILD_IMAGE)
+      #if: env(BUILD_IMAGE) == "true"
       script:
         - |
           echo "Copying necessary files to BUILDER_VM"
