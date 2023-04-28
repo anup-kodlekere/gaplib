@@ -24,7 +24,7 @@ jobs:
           # ./build-lxd-image.sh
           
           chmod 0600 "${BUILDER_KEY}"
-          ssh -i "${BUILDER_KEY"} ubuntu@"${BUILDER_HOST}"
+          ssh -i "${BUILDER_KEY}" ubuntu@"${BUILDER_HOST}"
           
           ls -lha
           ls /tmp
