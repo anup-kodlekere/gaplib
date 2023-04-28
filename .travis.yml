@@ -21,7 +21,7 @@ jobs:
       script:
         - |
           
-          echo 'Last version is "${LAST_VERSION}".'
+          echo "Last version is "${LAST_VERSION}"
           
           chmod +x release-check.sh
           ./release-check.sh -l "${LAST_VERSION}" "actions/runner"
@@ -35,5 +35,10 @@ jobs:
       script:
         - |
           
+          echo "Copying necessary files to BUILDER_VM"
+          
+          scp -q -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \ 
+            build-image.sh ubuntu@"${BUILDER_HOST}":/home/ubuntu/remote-build/files/
+
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
-            bash -s < setup-lxd-container.sh
+            bash -s < setup-build-env.sh
