@@ -14,7 +14,7 @@ build_image_in_container() {
   local DOTNET_SDK="dotnet-sdk-7.0.100-linux-ppc64le.tar.gz"
   local PATCH_FILE="runner-ppc64le-final.patch"
 
-  lxc launch ubuntu:22.04 gha-builder
+  lxc launch ubuntu:20.04 gha-builder
   lxc ls
   
   # give container some time to wake up
