@@ -12,6 +12,9 @@ build_image_in_container() {
   lxc launch ubuntu:22.04 gha-builder
   lxc ls
   
+  # give container some time to wake up
+  sleep 10
+  
   echo "Copy the build-image script into gha-builder"
   lxc file push /home/ubuntu/remote-build/files/build-image.sh gha-builder/home/ubuntu/
   
