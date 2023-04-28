@@ -13,7 +13,7 @@ build_image_in_container() {
   lxc ls
   
   echo "Copy the build-image script into gha-builder"
-  lxc file push build-image.sh gha-builder/home/ubuntu/
+  lxc file push ${WORKING_DIR}/files/build-image.sh gha-builder/home/ubuntu/
   
   echo "Setting executable permissions on build-image.sh"
   lxc exec gha-builder -- chmod +x /home/ubuntu/build-image.sh
