@@ -38,9 +38,6 @@ jobs:
           # ./build-lxd-image.sh
           
           chmod 0600 key
-          ssh -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}"
-          
-          ls -lha
-          ls /tmp
+          ssh -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" 'ls -lha'
           
           travis_terminate 0
