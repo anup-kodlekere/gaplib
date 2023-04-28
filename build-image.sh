@@ -1,9 +1,7 @@
 #!/bin/bash
 
-WORKING_DIR="/home/ubuntu/remote-build"
-
 setup_dotnet_sdk() {
-  export DOTNET_SDK_FILE="${WORKING_DIR}/dotnet-sdk-7.0.100-linux-ppc64le.tar.gz"
+  export DOTNET_SDK_FILE="/home/ubuntu/dotnet-sdk-7.0.100-linux-ppc64le.tar.gz"
   export DOTNET_ROOT="/opt/dotnet"
   export PATH=$PATH:$DOTNET_ROOT 
   mkdir -p $DOTNET_ROOT
