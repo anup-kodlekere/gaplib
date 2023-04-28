@@ -1,0 +1,28 @@
+if: type = api
+
+arch: ppc64le
+
+services:
+  - docker
+  
+
+before_install:
+
+before_script:
+
+jobs:
+  include:
+    - name: release-check
+      script:
+        - |
+          chmod +x release-check.sh
+          ./release-check.sh
+    
+    - name: build-lxd-runner-image
+      if: env(NEW_RUNNER_EXISTS) == "true"
+      script:
+        - |
+          chmod +x build-lxd-image.sh
+          ./build-lxd-image.sh
+
+after_script:
