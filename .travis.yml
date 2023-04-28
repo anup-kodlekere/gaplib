@@ -36,9 +36,9 @@ jobs:
           # ./build-lxd-image.sh
           
           chmod 0600 key
-          ssh -i key ubuntu@"${BUILDER_HOST}"
+          ssh -t -i key ubuntu@"${BUILDER_HOST}"
           
           ls -lha
           ls /tmp
           
-          exit
+          travis_terminate
