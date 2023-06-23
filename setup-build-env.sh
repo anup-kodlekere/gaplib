@@ -40,7 +40,7 @@ build_image_in_container() {
   echo "Runner build complete. Creating image snapshot."
   
   lxc snapshot "${BUILD_CONTAINER}" ubuntu-2004-power-runner
-  lxc publish "{BUILD_CONTAINER}/ubuntu-2004-power-runner" --alias ubuntu-2004-power-runner description="GitHub Actions Ubuntu 20.04 Runner for IBM Power."
+  lxc publish "${BUILD_CONTAINER}/ubuntu-2004-power-runner" --alias ubuntu-2004-power-runner description="GitHub Actions Ubuntu 20.04 Runner for IBM Power."
   
   lxc delete -f "${BUILD_CONTAINER}"
 
