@@ -46,10 +46,6 @@ build_runner() {
   echo "Finished building runner binary"
 }
 
-create_image_snapshot() {
-
-}
-
 install_runner() {
   echo "Installing runner"
   mkdir -p /opt/runner 
@@ -66,7 +62,6 @@ run() {
   patch_runner
   build_runner
   install_runner
-  create_image_snapshot
 }
 
 run "$@"
