@@ -36,9 +36,16 @@ patch_runner() {
 build_runner() {
   echo "Building runner binary"
   cd src
+
+  echo "dev build"
   ./dev.sh build 
+
+  echo "dev layout"
   ./dev.sh layout
+
+  echo "dev package"
   ./dev.sh package 
+  
   echo "Finished building runner binary"
 }
 
