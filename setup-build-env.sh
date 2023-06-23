@@ -35,8 +35,8 @@ build_image_in_container() {
   echo "Running build-image.sh"
   lxc exec gha-builder -- /home/ubuntu/build-image.sh
   
-#   echo "Image build complete, deleting container"
-#   lxc delete -f gha-builder
+  echo "Image build complete, deleting container"
+  lxc delete -f gha-builder
 
 }
 
