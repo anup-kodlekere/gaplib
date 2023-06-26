@@ -11,11 +11,11 @@ setup_git() {
 commit_files() {
   git add last_version
   # TODO: find a better solution to exit with 0 if there is nothing to commit
-  git commit --message "[skip travis] Updating last version from travis job $TRAVIS_JOB_WEB_URL" || true
+  git commit --message "[skip ci] Updating last version from travis job $TRAVIS_JOB_WEB_URL" || true
 }
 
 push_files() {
-  git remote add https_push https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/anup-kodlekere/gaplib.git > /dev/null 2>&1
+  git remote add https_push https://anup-kodlekere:${GH_TOKEN}@github.com/anup-kodlekere/gaplib.git > /dev/null 2>&1
   git pull origin $TRAVIS_BRANCH --rebase
   git push https_push HEAD:$TRAVIS_BRANCH
 }
