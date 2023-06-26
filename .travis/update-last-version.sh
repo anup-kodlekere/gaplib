@@ -11,7 +11,7 @@ setup_git() {
 commit_files() {
   echo "Updating Last Version in file to $1"
 
-  echo '"$1"' > last_version
+  echo "$1" > last_version
 
   echo "Latest Version: "
   cat last_version
