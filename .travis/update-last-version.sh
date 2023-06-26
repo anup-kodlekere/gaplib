@@ -29,7 +29,7 @@ push_files() {
 
 update_last_version() {
   setup_git
-  commit_files
+  commit_files $1
   push_files
 }
 
