@@ -88,7 +88,7 @@ do
   else
     echo "No new releases for $project"
     echo "Current release: $last_release"
-    
+    exit 1
     export BUILD_IMAGE=false
   fi
 done
