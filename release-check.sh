@@ -68,6 +68,7 @@ do
   if [ "$latest_release" != "$last_release" ]; then
     echo "New release found for $project"
     echo "New release: $latest_release"
+    echo "$latest_release" > /tmp/new_version
     echo "Previous release: $last_release"
     
     export BUILD_IMAGE=true
