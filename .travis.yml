@@ -55,10 +55,6 @@ jobs:
           use: release-check-file
       script:
         - |
-
-          if [[ ! -f /tmp/new_version ]]; then
-              travis_terminate 1
-          fi
           
           export NEW_VERSION=$(cat /tmp/new_version)
           echo "${NEW_VERSION}"
