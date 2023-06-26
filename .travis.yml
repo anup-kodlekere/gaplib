@@ -58,7 +58,7 @@ jobs:
       stage: update-last-version
       if: env(BUILD_IMAGE) = true
       workspaces:
-          use: release-check
+          use: release-check-file
       script:
         - |
 
