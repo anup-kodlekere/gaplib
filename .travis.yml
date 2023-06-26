@@ -46,5 +46,16 @@ jobs:
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
             bash -s < setup-build-env.sh
 
+
+    
+    - name: export-lxd-runner-image
+      stage: export-and-update
+      if: env(BUILD_IMAGE) = true
+      script:
+        - |
+
+          ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
+            bash -s < save-image.sh
+
           # update last_version file in github
           bash .travis/update-last-version.sh
