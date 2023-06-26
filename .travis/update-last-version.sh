@@ -9,6 +9,13 @@ setup_git() {
 
 # [skip travis] ensures that the commits made via CI will not trigger travis job
 commit_files() {
+  echo "Updating Last Version in file to $1"
+
+  echo "$1" > last_version
+
+  echo "Latest Version: "
+  cat last_version
+  
   git add last_version
   # TODO: find a better solution to exit with 0 if there is nothing to commit
   git commit --message "[skip ci] Updating last version from travis job $TRAVIS_JOB_WEB_URL" || true
