@@ -30,9 +30,9 @@ jobs:
           ./release-check.sh -l "${LAST_VERSION}" "actions/runner"
           BUILD_IMAGE=true
           
-#           if [[ "$?" -ne 0 ]]; then
-#             travis_terminate 1
-#           fi
+          if [[ "$?" -ne 0 ]]; then
+            travis_terminate 1
+          fi
     
     - name: build-lxd-runner-image
       stage: build
@@ -45,3 +45,6 @@ jobs:
 
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
             bash -s < setup-build-env.sh
+
+          # update last_version file in github
+          bash .travis/update-last-version.sh
