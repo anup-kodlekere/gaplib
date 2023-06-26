@@ -16,6 +16,11 @@ jobs:
   include:
     - name: release-check
       stage: release-check
+      workspaces:
+        create:
+          name: release-check-file
+          paths:
+            - /tmp
       before_script:
         - |
           sudo apt-get update -y
@@ -34,6 +39,7 @@ jobs:
             travis_terminate 1
           fi
     
+    
     - name: build-and-export-lxd-runner-image
       stage: build-export
       if: env(BUILD_IMAGE) = true
@@ -51,10 +57,17 @@ jobs:
     - name: update-last-version
       stage: update-last-version
       if: env(BUILD_IMAGE) = true
+      workspaces:
+          use:
+              name: release-check
       script:
         - |
 
-          NEW_VERSION=$(cat /tmp/new_version)
+          if [[ ! -f /tmp/new_version ]]; then
+              travis_terminate 1
+          fi
+          
+          export NEW_VERSION=$(cat /tmp/new_version)
         
           # update last_version file in github
           bash .travis/update-last-version.sh "${NEW_VERSION}"
