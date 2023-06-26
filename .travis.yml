@@ -69,6 +69,7 @@ jobs:
           fi
           
           export NEW_VERSION=$(cat /tmp/new_version)
+          echo $NEW_VERSION
         
           # update last_version file in github
           #bash .travis/update-last-version.sh "${NEW_VERSION}"
