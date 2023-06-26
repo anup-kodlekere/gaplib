@@ -1,9 +1,6 @@
 dist: focal
 arch: ppc64le
 
-env:
-    - BUILD_IMAGE=true
-
 before_install:
   - |
     touch key
@@ -41,7 +38,6 @@ jobs:
     
     # - name: build-and-export-lxd-runner-image
     #   stage: build-export
-    #   if: env(BUILD_IMAGE) = true
     #   script:
     #     - |
     #       echo "Copying necessary files to BUILDER_VM"
@@ -55,7 +51,6 @@ jobs:
     
     - name: update-last-version
       stage: update-last-version
-      if: env(BUILD_IMAGE) = true
       workspaces:
           use: release-check-file
       script:
@@ -66,6 +61,7 @@ jobs:
           fi
           
           export NEW_VERSION=$(cat /tmp/new_version)
+          echo "${NEW_VERSION}"
           
           # update last_version file in github
-          bash .travis/update-last-version.sh $NEW_VERSION
+          bash .travis/update-last-version.sh "${NEW_VERSION}"
