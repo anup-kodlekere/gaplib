@@ -33,7 +33,6 @@ jobs:
           
           chmod +x release-check.sh
           ./release-check.sh -l "${LAST_VERSION}" "actions/runner"
-          BUILD_IMAGE=true
           
           if [[ "$?" -ne 0 ]]; then
             travis_terminate 1
