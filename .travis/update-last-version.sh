@@ -27,6 +27,10 @@ push_files() {
   git push https_push HEAD:$TRAVIS_BRANCH
 }
 
-setup_git
-commit_files
-push_files
+update_last_version() {
+  setup_git
+  commit_files
+  push_files
+}
+
+update_last_version "$@"
