@@ -35,9 +35,9 @@ jobs:
             travis_terminate 1
           fi
 
-      - name: test-stage
-        stage: continuity-test
-        script: echo "hello"
+    - name: test-stage
+      stage: continuity-test
+      script: echo "hello"
     
     
     # - name: build-and-export-lxd-runner-image
