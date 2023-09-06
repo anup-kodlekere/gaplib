@@ -30,9 +30,10 @@ jobs:
           
           chmod +x release-check.sh
           ./release-check.sh -l $LAST_VERSION actions/runner
-          
+
+          # if there are no new releases found, exit the Travis-CI build with success and not failure.
           if [[ "$?" -ne 0 ]]; then
-            travis_terminate 1
+            travis_terminate 0
           fi
     
     
