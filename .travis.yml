@@ -8,8 +8,9 @@ before_install:
     chmod 0600 key
 
 env:
-  - OS="20.04"
-  - OS="22.04"
+  global:
+    - OS="20.04"
+    - OS="22.04"
 
 jobs:
   include:
