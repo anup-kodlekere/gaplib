@@ -29,7 +29,8 @@ jobs:
           # if there are no new releases found, exit the Travis-CI build with success and not failure.
           ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 0
 
-    - &stage: build-export
+    - &build-export
+      stage: build-export
       name: "Build and save the LXD runner image"
       env: OS="22.04" DIST="Jammy"
       script:
@@ -41,7 +42,7 @@ jobs:
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
             bash -s < setup-build-env.sh
 
-    - <<*: build-export
+    - <<: *build-export
       env: OS="22.04" DIST="Focal"
     
     - stage: update-last-version
