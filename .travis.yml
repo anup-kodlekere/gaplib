@@ -32,7 +32,9 @@ jobs:
     - &build-export
       stage: build-export
       name: "Build and save the LXD runner image"
-      env: OS="22.04" DIST="Jammy"
+      env: 
+        - OS="22.04" 
+        - DIST="Jammy"
       script:
         - |
           echo "Copying necessary files to BUILDER_VM"
@@ -43,7 +45,9 @@ jobs:
             bash -s < setup-build-env.sh
 
     - <<: *build-export
-      env: OS="22.04" DIST="Focal"
+      env: 
+        - OS="20.04" 
+        - DIST="Focal"
     
     - stage: update-last-version
       name: "Update last_version in gaplib"
