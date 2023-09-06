@@ -21,7 +21,7 @@ jobs:
       before_script:
         - |
           sudo apt-get update -y
-          sudo apt-get install libxml2-utils -y
+          sudo apt-get install libxml2-utils jq -y
           LAST_VERSION=$(cat last_version)
       script:
         - |
@@ -29,7 +29,7 @@ jobs:
           echo "Last version is ${LAST_VERSION}"
           
           chmod +x release-check.sh
-          ./release-check.sh -l "${LAST_VERSION}" "actions/runner" || travis_terminate "$?"
+          ./release-check.sh -l $LAST_VERSION actions/runner
           
           if [[ "$?" -ne 0 ]]; then
             travis_terminate 1
