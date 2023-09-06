@@ -8,11 +8,20 @@ before_install:
     chmod 0600 key
 
 env:
-  global:
-    - OS="20.04"
-    - OS="22.04"
+  - OS="20.04"
+  - OS="22.04"
+
+stages:
+  - release-check
+  - build-and-export-lxd-runner-image
+  - update-last-version
 
 jobs:
+  exclude:
+    - stage: release-check
+      env: OS="20.04"
+    - stage: update-last-version
+      env: OS="20.04"
   include:
     - name: release-check
       stage: release-check
