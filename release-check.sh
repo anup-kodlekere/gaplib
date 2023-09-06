@@ -8,12 +8,10 @@ Check for new releases on Github PROJECTs
 
 Options:
   -h          Print this help text
-  -l PATH     Path to last release file
+  -l VERSION  last release version
               Default: last_release
 EOF
 }
-
-last_release_path="last_release"
 
 while getopts ":h:l:" opt; do
   case $opt in
@@ -22,7 +20,7 @@ while getopts ":h:l:" opt; do
       exit 0
       ;;
     l)
-      last_release_path="$OPTARG"
+      last_release_version="$OPTARG"
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -44,14 +42,8 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-if [ ! -f "$last_release_path" ]; then
-  touch "$last_release_path"
-fi
-
 for project
 do
-  last_release="$(grep -w "$project" "$last_release_path" | cut -f 2)"
-
   url=" https://api.github.com/repos/$project/releases/latest"
   feed="$(curl --silent --fail "$url")"
   if [ $? -ne 0 ]; then
@@ -59,35 +51,35 @@ do
     continue
   fi
 
-  latest_release="$(echo $feed | jq .name"
+  latest_release="$(echo $feed | jq .name)"
   if [ $? -ne 0 ]; then
     echo "Error parsing feed!" >&2
     continue
   fi
 
-  if [ "$latest_release" != "$last_release" ]; then
+  if [ "$latest_release" != "$last_release_version" ]; then
     echo "New release found for $project"
     echo "New release: $latest_release"
     echo "$latest_release" > /tmp/new_version
-    echo "Previous release: $last_release"
+    echo "Previous release: $last_release_version"
     
     export BUILD_IMAGE=true
 
-    if [ -n "$last_release" ]; then
-      sed -i '' "s|$project     .*|$project     $latest_release|" "$last_release_path"
-    else
-      printf '%s\t%s\n' "$project" "$latest_release" >> "$last_release_path"
-    fi
+    # if [ -n "$last_release" ]; then
+    #   sed -i '' "s|$project     .*|$project     $latest_release|" "$last_release_path"
+    # else
+    #   printf '%s\t%s\n' "$project" "$latest_release" >> "$last_release_path"
+    # fi
 
-    if [ -n "$to" ]; then
-      from_arg=""
-      if [ -n "$from" ]; then
-        from_arg="-r $from"
-      fi
-    fi
+    # if [ -n "$to" ]; then
+    #   from_arg=""
+    #   if [ -n "$from" ]; then
+    #     from_arg="-r $from"
+    #   fi
+    # fi
   else
     echo "No new releases for $project"
-    echo "Current release: $last_release"
+    echo "Current release: $last_release_version"
     exit 1
     export BUILD_IMAGE=false
   fi
