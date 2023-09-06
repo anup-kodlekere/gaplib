@@ -7,26 +7,10 @@ before_install:
     echo "${BUILDER_KEY}" |  base64 -d -w 0 > key
     chmod 0600 key
 
-env:
-  - OS="20.04"
-  - OS="22.04"
-
-stages:
-  - release-check
-  - build-export
-  - update-last-version
-
-matrix:
-  exclude:
-    - stage: release-check
-      env: 
-        - OS="20.04"
-    - stage: update-last-version
-      env: 
-        - OS="20.04"
+jobs:
   include:
-    - name: release-check
-      stage: release-check
+    - stage: release-check
+      name: "Check actions/runner for new release"
       workspaces:
         create:
           name: release-check-file
@@ -45,10 +29,9 @@ matrix:
           # if there are no new releases found, exit the Travis-CI build with success and not failure.
           ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 0
 
-    - name: build-and-export-lxd-runner-image
-      stage: build-export
-      env: 
-        - OS="22.04"
+    - &stage: build-export
+      name: "Build and save the LXD runner image"
+      env: OS="22.04" DIST="Jammy"
       script:
         - |
           echo "Copying necessary files to BUILDER_VM"
@@ -58,8 +41,11 @@ matrix:
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
             bash -s < setup-build-env.sh
 
-    - name: update-last-version
-      stage: update-last-version
+    - <<*: build-export
+      env: OS="22.04" DIST="Focal"
+    
+    - stage: update-last-version
+      name: "Update last_version in gaplib"
       workspaces:
           use: release-check-file
       script:
