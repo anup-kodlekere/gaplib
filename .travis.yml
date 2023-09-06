@@ -7,6 +7,10 @@ before_install:
     echo "${BUILDER_KEY}" |  base64 -d -w 0 > key
     chmod 0600 key
 
+env:
+  - OS="20.04"
+  - OS="22.04"
+
 jobs:
   include:
     - name: release-check
@@ -30,9 +34,6 @@ jobs:
           ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 0
 
     - name: build-and-export-lxd-runner-image
-      env:
-        - OS="20.04"
-        - OS="22.04"
       stage: build-export
       script:
         - |
