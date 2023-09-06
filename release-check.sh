@@ -52,14 +52,14 @@ for project
 do
   last_release="$(grep -w "$project" "$last_release_path" | cut -f 2)"
 
-  url="https://github.com/$project/releases.atom"
+  url=" https://api.github.com/repos/$project/releases/latest"
   feed="$(curl --silent --fail "$url")"
   if [ $? -ne 0 ]; then
     echo "Error fetching feed!" >&2
     continue
   fi
 
-  latest_release="$(echo $feed | xmllint --xpath "//*[local-name()='entry'][1]/*[local-name()='title']/text()" -)"
+  latest_release="$(echo $feed | jq .name"
   if [ $? -ne 0 ]; then
     echo "Error parsing feed!" >&2
     continue
