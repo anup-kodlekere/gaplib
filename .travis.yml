@@ -27,7 +27,7 @@ jobs:
           chmod +x release-check.sh
           
           # if there are no new releases found, exit the Travis-CI build with success and not failure.
-          ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 1
+          ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 0
 
     - name: build-and-export-lxd-runner-image
       env:
