@@ -17,11 +17,11 @@ stages:
   - update-last-version
 
 jobs:
-  exclude:
-    - stage: release-check
-      env: OS="20.04"
-    - stage: update-last-version
-      env: OS="20.04"
+  # exclude:
+  #   - stage: release-check
+  #     env: OS="20.04"
+  #   - stage: update-last-version
+  #     env: OS="20.04"
   include:
     - name: release-check
       stage: release-check
