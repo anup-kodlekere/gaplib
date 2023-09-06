@@ -30,11 +30,14 @@ jobs:
           ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 1
 
     - name: build-and-export-lxd-runner-image
+      env:
+        - OS="20.04"
+        - OS="22.04"
       stage: build-export
       script:
         - |
           echo "Copying necessary files to BUILDER_VM"
-          
+          echo "Building for $OS"
           scp -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no build-image.sh "ubuntu@${BUILDER_HOST}:/home/ubuntu/remote-build/files/"
 
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
