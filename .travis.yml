@@ -16,7 +16,7 @@ stages:
   - build-export
   - update-last-version
 
-jobs:
+matrix:
   # exclude:
   #   - stage: release-check
   #     env: OS="20.04"
@@ -45,7 +45,8 @@ jobs:
 
     - name: build-and-export-lxd-runner-image
       stage: build-export
-      env: OS="22.04"
+      env: 
+        - OS="22.04"
       script:
         - |
           echo "Copying necessary files to BUILDER_VM"
