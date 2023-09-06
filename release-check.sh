@@ -44,14 +44,14 @@ fi
 
 for project
 do
-  url=" https://api.github.com/repos/$project/releases/latest"
-  feed="$(curl --silent --fail "$url")"
+  url="https://api.github.com/repos/$project/releases/latest"
+  feed="$(curl -L --silent --fail "$url")"
   if [ $? -ne 0 ]; then
     echo "Error fetching feed!" >&2
     continue
   fi
 
-  latest_release="$(echo $feed | jq .name)"
+  latest_release="$(echo $feed | jq .name | tr -d \")"
   if [ $? -ne 0 ]; then
     echo "Error parsing feed!" >&2
     continue
@@ -62,7 +62,7 @@ do
     echo "New release: $latest_release"
     echo "$latest_release" > /tmp/new_version
     echo "Previous release: $last_release_version"
-    
+
     export BUILD_IMAGE=true
 
     # if [ -n "$last_release" ]; then
