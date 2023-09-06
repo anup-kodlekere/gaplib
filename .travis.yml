@@ -4,9 +4,7 @@ arch: ppc64le
 before_install:
   - |
     touch key
-    #echo "-----BEGIN RSA PRIVATE KEY-----" >> key
-    echo "${BUILDER_KEY}" |  base64 -d -w 0 >> key
-    #echo "-----END RSA PRIVATE KEY-----" >> key
+    echo "${BUILDER_KEY}" |  base64 -d -w 0 > key
     chmod 0600 key
 
 jobs:
@@ -29,12 +27,12 @@ jobs:
           echo "Last version is ${LAST_VERSION}"
           
           chmod +x release-check.sh
-          ./release-check.sh -l $LAST_VERSION actions/runner
+          ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 1
 
           # if there are no new releases found, exit the Travis-CI build with success and not failure.
-          if [[ "$?" -ne 0 ]]; then
-            travis_terminate 0
-          fi
+          # if [[ "$?" -ne 0 ]]; then
+          #   travis_terminate 1
+          # fi
     
     
     - name: build-and-export-lxd-runner-image
