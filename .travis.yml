@@ -45,6 +45,7 @@ jobs:
 
     - name: build-and-export-lxd-runner-image
       stage: build-export
+      env: OS="22.04"
       script:
         - |
           echo "Copying necessary files to BUILDER_VM"
