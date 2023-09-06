@@ -23,18 +23,12 @@ jobs:
           LAST_VERSION=$(cat last_version)
       script:
         - |
-          
           echo "Last version is ${LAST_VERSION}"
-          
           chmod +x release-check.sh
+          
+          # if there are no new releases found, exit the Travis-CI build with success and not failure.
           ./release-check.sh -l $LAST_VERSION actions/runner || travis_terminate 1
 
-          # if there are no new releases found, exit the Travis-CI build with success and not failure.
-          # if [[ "$?" -ne 0 ]]; then
-          #   travis_terminate 1
-          # fi
-    
-    
     - name: build-and-export-lxd-runner-image
       stage: build-export
       script:
@@ -46,8 +40,6 @@ jobs:
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
             bash -s < setup-build-env.sh
 
-
-    
     - name: update-last-version
       stage: update-last-version
       workspaces:
