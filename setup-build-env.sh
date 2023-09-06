@@ -9,7 +9,7 @@ ensure_lxd() {
 }
 
 build_image_in_container() {
-  
+  echo "$1 in biic"
   local BUILD_PREREQS_PATH="/home/ubuntu/remote-build/files"
   local DOTNET_SDK="dotnet-sdk-7.0.100-linux-ppc64le.tar.gz"
   local PATCH_FILE="runner-ppc64le-final.patch"
@@ -48,7 +48,8 @@ build_image_in_container() {
 
 run() {
   ensure_lxd
-  build_image_in_container
+  echo "$1 in run"
+  build_image_in_container $1
 }
 
 run "$@"
