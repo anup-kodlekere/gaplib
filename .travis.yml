@@ -4,9 +4,9 @@ arch: ppc64le
 before_install:
   - |
     touch key
-    echo "-----BEGIN RSA PRIVATE KEY-----" >> key
+    #echo "-----BEGIN RSA PRIVATE KEY-----" >> key
     echo "${BUILDER_KEY}" |  base64 -d -w 0 >> key
-    echo "-----END RSA PRIVATE KEY-----" >> key
+    #echo "-----END RSA PRIVATE KEY-----" >> key
     chmod 0600 key
 
 jobs:
