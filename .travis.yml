@@ -13,7 +13,7 @@ env:
 
 stages:
   - release-check
-  - build-and-export-lxd-runner-image
+  - build-export
   - update-last-version
 
 jobs:
