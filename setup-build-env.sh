@@ -19,8 +19,9 @@ build_image_in_container() {
   export DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-7.0.100-linux-ppc64le.tar.gz}"
   export PATCH_FILE="${PATCH_FILE:-runner-ppc64le.patch}"
 
-  local BUILD_CONTAINER=gha-builder-$(date +%s)
-  lxc launch $OS_NAME:$OS_VERSION "${BUILD_CONTAINER}" 
+  export BUILD_CONTAINER
+  BUILD_CONTAINER="gha-builder-$(date +%s)"
+  lxc launch "${OS_NAME}:${OS_VERSION}" "${BUILD_CONTAINER}" 
   lxc ls
   
   # give container some time to wake up
@@ -39,7 +40,7 @@ build_image_in_container() {
   lxc file push "${BUILD_PREREQS_PATH}/register-runner.sh" "${BUILD_CONTAINER}/opt/register-runner.sh"
   
   echo "Copy the gha-service unit file into gha-builder"
-  lxc file push "${BUILD_PREREQS_PATH}/gha-runner.service" "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service
+  lxc file push "${BUILD_PREREQS_PATH}/gha-runner.service" "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service"
 
   echo "Setting executable permissions on register-runner.sh"
   lxc exec "${BUILD_CONTAINER}" -- chmod +x /opt/register-runner.sh
@@ -53,7 +54,6 @@ build_image_in_container() {
   #TODO: Have better error handling checks
   echo "Runner build complete. Creating image snapshot."
 
-  lxc publish "${BUILD_CONTAINER}" -f --alias $IMAGE_ALIAS
   lxc publish "${BUILD_CONTAINER}" -f --alias "$IMAGE_ALIAS" description="GitHub Actions Ubuntu 20.04 Runner for IBM Power."
   
   lxc delete -f "${BUILD_CONTAINER}"
@@ -63,7 +63,7 @@ build_image_in_container() {
 run() {
   ensure_lxd
   echo "$1 in run"
-  build_image_in_container $1
+  build_image_in_container "$1"
 }
 
 run "$@"
