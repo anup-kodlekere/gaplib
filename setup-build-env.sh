@@ -62,8 +62,7 @@ build_image_in_container() {
 
 run() {
   ensure_lxd
-  echo "$1 in run"
-  build_image_in_container "$1"
+  build_image_in_container "$@"
 }
 
 run "$@"
