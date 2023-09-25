@@ -15,7 +15,7 @@ build_image_in_container() {
   local ARCH="${ARCH:-$(uname -m)}"
   local IMAGE_ALIAS="${IMAGE_ALIAS:-${OS_NAME}-${OS_VERSION}-${ARCH}}"
 
-  local BUILD_PREREQS_PATH="${BUILD_PREREQS_PATH:-files}"
+  local BUILD_PREREQS_PATH="${BUILD_PREREQS_PATH:-/home/ubuntu/remote-build/files}"
   local DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-7.0.100-linux-ppc64le.tar.gz}"
   local PATCH_FILE="${PATCH_FILE:-runner-ppc64le.patch}"
 
