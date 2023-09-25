@@ -44,6 +44,8 @@ jobs:
           ssh -q -t -i key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@"${BUILDER_HOST}" \
             bash -s < setup-build-env.sh $OS $DIST &
 
+          wait
+
     - <<: *build-export
       env: 
         - OS="20.04" 
