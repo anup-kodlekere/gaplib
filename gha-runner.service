@@ -1,0 +1,15 @@
+[Unit]
+Description=GitHub Actions Runner
+After=network.target
+
+[Service]
+Environment=DOTNET_ROOT='/opt/dotnet'
+ExecStart=/usr/bin/bash -c "/opt/runner/run.sh"
+User=ubuntu
+WorkingDirectory=/opt/runner
+KillMode=process
+KillSignal=SIGTERM
+TimeoutStopSec=5min
+
+[Install]
+WantedBy=multi-user.target
