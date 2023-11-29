@@ -1,0 +1,135 @@
+#!/bin/bash
+
+update_fresh_container() {
+    echo "... Upgrading AlmaLinux"
+    dnf upgrade -y -q
+    dnf --enablerepo=epel install  \
+        GConf2-devel ImageMagick R-littler aria2 autoconf automake \
+        bison buildah bzip2 cabal-install cargo cbindgen clang \
+        clang-tools-extra cmake dash fakeroot file flex ftp gcc-fortran ghc \
+        glibc-devel golang gtk3-devel haveged httpd-devel java-1.8.0-openjdk-devel \
+        java-11-openjdk-devel java-17-openjdk-devel java-21-openjdk-devel jq \
+        libcurl-devel libtool lz4 m4 make mariadb maven mercurial nginx p7zip \
+        parallel pass patchelf perl-CPAN php pigz pkgconf podman podman-compose \
+        postgresql python3-pip python3-py rpm-build ruby rubygems rust rustfmt \
+        skopeo sqlite sshpass stack subversion telnet time tk unzip upx xorriso \
+        xz yamllint zip zstd -y -q
+}
+
+setup_dotnet_sdk() {
+    echo -n "... Using SDK - ${DOTNET_SDK_FILE}"
+
+    useradd -m -c "Runner" almalinux
+    passwd -d almalinux -f
+    usermod -L almalinux
+    chown -R almalinux:almalinux /home/almalinux
+
+    cat <<__EOF__ >>/etc/rc.d/rc.local
+setcap 'cap_net_raw+p' /usr/bin/ping
+getcap /usr/bin/ping
+__EOF__
+    chmod +x /etc/rc.d/rc.local
+    systemctl enable rc-local
+    systemctl start rc-local
+    ln -s /usr/lib64/dotnet /opt/dotnet
+
+    dotnet --version
+}
+
+pull_images() {
+    for img in alpine:3.16 alpine:3.17 alpine:3.18 debian:11 debian:12 \
+        node:16-alpine node:18 node:18-alpine \
+        node:20 node:20-alpine ubuntu:20.04 ubuntu:22.04
+    do
+        podman pull docker.io/library/${img}
+        if [ $? -ne 0 ]; then
+            return 1
+        fi
+    done
+    podman pull docker.io/moby/buildkit:latest
+    return $?
+}
+
+patch_runner() {
+    echo "... Patching runner"
+    cd /tmp
+    git clone -q ${RUNNERREPO}
+    cd runner
+    git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b almalinux
+    git apply /root/runner-${ARCH}.patch
+    return $?
+}
+
+build_runner() {
+    echo "... Building runner binary"
+    cd src
+
+    echo "    ... dev layout"
+    ./dev.sh layout
+    if [ $? -eq 0 ]; then
+        echo "    ... dev package"
+        ./dev.sh package 
+        if [ $? -eq 0 ]; then
+            echo "... Finished building runner binary"
+
+            echo "... Testing"
+            ./dev.sh test
+        fi
+    fi
+    return $?
+}
+
+install_runner() {
+    echo "... Installing runner"
+    mkdir -p /opt/runner 
+    tar xf ../_package/*.tar.gz -C /opt/runner
+    if [ $? -eq 0 ]; then
+        chown almalinux:almalinux -R /opt/runner
+
+        su -c "/opt/runner/config.sh --version" almalinux
+        sed -i'' -e "s+DOTNET_ROOT='/opt/dotnet'++" /etc/systemd/system/gha-runner.service
+    fi
+    return $?
+}
+
+cleanup() {
+    rm -rf /root/.ssh/* /root/build-image.sh /root/*.patch /root/build-image.sh /tmp/runner
+}
+
+run() {
+    update_fresh_container
+    setup_dotnet_sdk
+    pull_images
+    RC=$?
+    if [ ${RC} -eq 0 ]; then
+        patch_runner
+        RC=$?
+        if [ ${RC} -eq 0 ]; then
+            build_runner
+            RC=$?
+            if [ ${RC} -eq 0 ]; then
+                install_runner
+                RC=$?
+            fi
+        fi
+    fi
+    cleanup
+    return ${RC}
+}
+
+ARCH=`uname -m`
+RUNNERREPO="https://github.com/actions/runner"
+while getopts "a:s:" opt
+do
+    case ${opt} in
+        a)
+            RUNNERREPO=${OPTARG}
+            ;;
+        s)
+            # Ignore for s390x - we get RPM
+            ;;
+    esac
+done
+shift $(( OPTIND - 1 ))
+run "$@"
+exit $?

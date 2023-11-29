@@ -1,0 +1,4 @@
+distro/*.tar.*
+distro/rootfs_almalinux_*
+distro/rootfs.squashfs
+distro/almalinux.yaml
