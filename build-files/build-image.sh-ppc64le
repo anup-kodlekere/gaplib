@@ -1,0 +1,113 @@
+#!/bin/bash
+
+update_fresh_container() {
+  sudo apt-get update -y;
+}
+
+setup_dotnet_sdk() {
+  export DOTNET_SDK_FILE="/home/ubuntu/dotnet-sdk-${SDK}-linux-${ARCH}.tar.gz"
+  export DOTNET_ROOT="/opt/dotnet"
+  export PATH=${PATH}:${DOTNET_ROOT}
+  mkdir -p ${DOTNET_ROOT}
+  echo "Using SDK - ${DOTNET_SDK_FILE}"
+  chk=`echo ${DOTNET_SDK_FILE} | grep -q gz`
+  if [ $? -eq 0 ]; then
+      COMPRESS="z"
+  else
+      COMPRESS=""
+  fi
+  tar x${COMPRESS}f ${DOTNET_SDK_FILE} -C ${DOTNET_ROOT}
+
+  echo 'export DOTNET_ROOT=/opt/dotnet' >> /home/ubuntu/.bashrc
+  echo 'export PATH=${PATH}:${DOTNET_ROOT}' >> /home/ubuntu/.bashrc
+
+  # fix ownership
+  sudo chown ubuntu:ubuntu /home/ubuntu/.bashrc
+  sudo chown ubuntu:ubuntu -R ${DOTNET_ROOT}
+
+  dotnet --version
+  
+}
+
+patch_runner() {
+  echo "Patching runner"
+  cd /tmp
+  git clone -q ${RUNNERREPO}
+  cd runner
+  git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
+  git apply /home/ubuntu/runner-${ARCH}.patch
+  return $?
+}
+
+build_runner() {
+  echo "Building runner binary"
+  cd src
+
+  echo "dev layout"
+  ./dev.sh layout
+
+  if [ $? -eq 0 ]; then
+      echo "dev package"
+      ./dev.sh package 
+      
+      if [ $? -eq 0 ]; then
+          echo "Finished building runner binary"
+
+          echo "Running tests"
+          ./dev.sh test
+      fi
+  fi
+  return $?
+}
+
+install_runner() {
+  echo "Installing runner"
+  mkdir -p /opt/runner 
+  tar xf ../_package/*.tar.gz -C /opt/runner
+  if [ $? -eq 0 ]; then
+      sudo chown ubuntu:ubuntu -R /opt/runner
+
+      su -c "/opt/runner/config.sh --version" ubuntu
+      #TODO: Verify that the version is the _actual_ latest runner
+  fi
+  return $?
+}
+
+cleanup() {
+  rm -rf /home/ubuntu/build-image.sh
+}
+
+run() {
+  update_fresh_container
+  setup_dotnet_sdk
+  patch_runner
+  RC=$?
+  if [ ${RC} -eq 0 ]; then
+      build_runner
+      RC=$?
+      if [ ${RC} -eq 0 ]; then
+          install_runner
+          RC=$?
+      fi
+  fi
+  cleanup
+  return ${RC}
+}
+
+ARCH=`uname -m`
+RUNNERREPO="https://github.com/actions/runner"
+SDK=7.0.100
+while getopts "a:s:" opt
+do
+  case ${opt} in
+    a)
+      RUNNERREPO=${OPTARG}
+      ;;
+    s)
+      SDK=${OPTARG}
+      ;;
+  esac
+done
+shift $(( OPTIND - 1 ))
+run "$@"
+exit $?
