@@ -44,14 +44,9 @@ build_image_in_container() {
   
   echo "Copy the build-image script into gha-builder"
   echo ${BUILD_PREREQS_PATH}
-  echo ${BUILD_PREREQS_PATH}/build-image.sh-${ARCH}
-  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/build-image.sh-${ARCH}" "${BUILD_CONTAINER}${BUILD_HOME}/build-image.sh"
+  echo ${BUILD_PREREQS_PATH}/build-image.sh
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/build-image.sh" "${BUILD_CONTAINER}${BUILD_HOME}/build-image.sh"
   sleep 10s
-  
-  if [ -n "${DOTNET_SDK}" ]; then
-      echo "Copy the dotnet-sdk into gha-builder"
-      lxc file push ${BUILD_PREREQS_PATH}/${DOTNET_SDK} "${BUILD_CONTAINER}${BUILD_HOME}"
-  fi
   
   echo "Copy the patch file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/${PATCH_FILE} "${BUILD_CONTAINER}${BUILD_HOME}/"
@@ -59,11 +54,14 @@ build_image_in_container() {
   echo "Copy the register-runner.sh script into gha-builder"
   lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/register-runner.sh "${BUILD_CONTAINER}/opt/register-runner.sh"
   
+  echo "Copy the /etc/rc.local - required in case podman is used"
+  lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/rc.local "${BUILD_CONTAINER}/etc/rc.local"
+  
   echo "Copy the gha-service unit file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/gha-runner.service "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service"
 
   echo "Running build-image.sh"
-  lxc exec "${BUILD_CONTAINER}" -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
+  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
@@ -115,50 +113,9 @@ do
             ;;
     esac
 done
-case "${ARCH}" in
-    ppc64le)
-        OS_NAME="${OS_NAME:-ubuntu}"
-        OS_VERSION="${OS_VERSION:-22.04}"
-        LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
-        DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-7.0.100-linux-${ARCH}.tar.gz}"
-        BUILD_HOME="/home/ubuntu"
-        ;;
-    s390x)
-        OS_NAME="${OS_NAME:-almalinux}"
-        OS_VERSION="${OS_VERSION:-9}"
-        if [ ! -f "${SRCDIR}/distro/incus.tar.xz" ]; then
-            pushd "${SRCDIR}/distro"
-            sed -e "s/%RELEASE%/${OS_VERSION}/g" <almalinux.yaml.tmpl >almalinux.yaml
-            sudo /var/lib/snapd/snap/bin/distrobuilder build-dir \
-                almalinux.yaml \
-                rootfs_almalinux_${OS_VERSION} \
-                -o image.architecture=s390x \
-                -o image.release=${OS_VERSION} \
-                -o image.variant=default \
-                -o source.variant=boot
-            sudo /var/lib/snapd/snap/bin/distrobuilder pack-incus \
-                almalinux.yaml \
-                rootfs_almalinux_${OS_VERSION} \
-                --compression=xz \
-                -o image.architecture=s390x \
-                -o image.release=${OS_VERSION}  \
-                -o image.variant=default \
-                -o source.variant=boot
-            lxc image import incus.tar.xz rootfs.squashfs --alias almalinux-${OS_VERSION}
-            popd
-            if [ $? -ne 0 ]; then
-                echo "Container build failed" >&2
-                exit 2
-            fi
-        fi
-        LXD_CONTAINER="${OS_NAME}-${OS_VERSION}"
-        DOTNET_SDK=""
-        BUILD_HOME="/root"
-        ;;
-    *)
-        "Unsupported architecture: ${ARCH}"
-        exit 1
-        ;;
-esac
+OS_NAME="${OS_NAME:-ubuntu}"
+OS_VERSION="${OS_VERSION:-22.04}"
+LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
+BUILD_HOME="/home/ubuntu"
 run "$@"
 exit $?

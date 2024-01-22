@@ -1,0 +1,3 @@
+#!/bin/bash
+setcap 'cap_net_raw+p' /usr/bin/ping
+getcap /usr/bin/ping
