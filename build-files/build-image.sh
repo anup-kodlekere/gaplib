@@ -8,6 +8,12 @@ update_fresh_container() {
         exit 32
     fi
     sudo apt autoclean
+
+    echo "Initializing LXD environment"
+    sudo lxd init --preseed </tmp/lxd-preseed.yaml
+
+    echo "Make sure we have lxd authority"
+    sudo usermod -G lxd -a ubuntu
 }
 
 setup_dotnet_sdk() {
@@ -108,7 +114,8 @@ install_runner() {
 }
 
 cleanup() {
-    rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-${ARCH}.patch /tmp/runner
+    rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-${ARCH}.patch \
+           /tmp/runner /tmp/preseed-yaml
 }
 
 run() {
