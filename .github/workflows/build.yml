@@ -47,7 +47,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest-ppc64le]
+        os: [ubuntu-22.04-ppc64le]
 
     steps:
       - name: Checkout code
