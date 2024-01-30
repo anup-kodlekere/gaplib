@@ -30,23 +30,35 @@ build_image_in_container() {
   local BUILD_PREREQS_PATH="${SRCDIR}/build-files"
   if [ ! -d "${BUILD_PREREQS_PATH}" ]; then
       echo "Check the BUILD_PREREQS_PATH specification" >&2
-      exit 3
+      return 3
   fi
   local PATCH_FILE="${PATCH_FILE:-runner-${ARCH}.patch}"
 
   local BUILD_CONTAINER
   BUILD_CONTAINER="gha-builder-$(date +%s)"
+
+  echo "Launching build container ${LXD_CONTAINER}"
   lxc launch "${LXD_CONTAINER}" "${BUILD_CONTAINER}" 
   lxc ls
   
-  # give container some time to wake up
-  sleep 5
-  
+  # give container some time to wake up and remap the filesystem
+  for ((i = 0; i < 30; i++))
+  do
+      CHECK=`lxc exec ${BUILD_CONTAINER} -- stat ${BUILD_HOME} 2>/dev/null`
+      if [ -n "${CHECK}" ]; then
+          break
+      fi
+      sleep 2s
+  done
+
+  if [ -z "${CHECK}" ]; then
+      echo "Unable to start the build container" >&2
+      lxc delete -f ${BUILD_CONTAINER}
+      return 2
+  fi
+
   echo "Copy the build-image script into gha-builder"
-  echo ${BUILD_PREREQS_PATH}
-  echo ${BUILD_PREREQS_PATH}/build-image.sh
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/build-image.sh" "${BUILD_CONTAINER}${BUILD_HOME}/build-image.sh"
-  sleep 10s
   
   echo "Copy the patch file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/${PATCH_FILE} "${BUILD_CONTAINER}${BUILD_HOME}/"
@@ -57,6 +69,9 @@ build_image_in_container() {
   echo "Copy the /etc/rc.local - required in case podman is used"
   lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/rc.local "${BUILD_CONTAINER}/etc/rc.local"
   
+  echo "Copy the LXD preseed configuration"
+  lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/lxd-preseed.yaml "${BUILD_CONTAINER}/tmp/lxd-preseed.yaml"
+  
   echo "Copy the gha-service unit file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/gha-runner.service "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service"
 
@@ -65,8 +80,12 @@ build_image_in_container() {
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
+      # Until we are at lxc >= 5.19 we can't use the --reuse option on the publish command
+      echo "Deleting old image"
+      lxc image delete ${IMAGE_ALIAS} 2>/dev/null
+
       echo "Runner build complete. Creating image snapshot."
-      lxc publish --reuse "${BUILD_CONTAINER}" -f --alias "${IMAGE_ALIAS}" description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
+      lxc publish "${BUILD_CONTAINER}" -f --alias "${IMAGE_ALIAS}" description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
   
       echo "Export the image to ${EXPORT} for use elsewhere"
       lxc image export "${IMAGE_ALIAS}" ${EXPORT}
@@ -85,14 +104,31 @@ run() {
   return $?
 }
 
-PATH=/snap/bin:${PATH}
-SOURCE=$(readlink -f ${BASH_SOURCE[0]})
-SRCDIR=$(dirname ${SOURCE})
+prolog() {
+  export PATH=/snap/bin:${PATH}
+  export SOURCE=$(readlink -f ${BASH_SOURCE[0]})
+  export SRCDIR=$(dirname ${SOURCE})
+  
+  export ARCH=`uname -m`
+  export ACTION_RUNNER="https://github.com/actions/runner"
+  export EXPORT="distro/lxc-runner"
+  export SDK=""
 
-ARCH=`uname -m`
-ACTION_RUNNER="https://github.com/actions/runner"
-EXPORT="distro/lxc-runner"
-SDK=""
+  export OS_NAME="${OS_NAME:-ubuntu}"
+  export OS_VERSION="${OS_VERSION:-22.04}"
+  export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
+  export BUILD_HOME="/home/ubuntu"
+
+  mkdir -p distro
+
+  X=`groups | grep -q lxd`
+  if [ $? -eq 1 ]; then
+      echo "Setting permissions"
+      sudo chmod 0666 /var/snap/lxd/common/lxd/unix.socket
+  fi
+}
+
+prolog
 while getopts "a:o:hs:" opt
 do
     case "${opt}" in
@@ -113,9 +149,6 @@ do
             ;;
     esac
 done
-OS_NAME="${OS_NAME:-ubuntu}"
-OS_VERSION="${OS_VERSION:-22.04}"
-LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
-BUILD_HOME="/home/ubuntu"
 run "$@"
-exit $?
+RC=$?
+exit ${RC}
