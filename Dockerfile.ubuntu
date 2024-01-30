@@ -1,0 +1,50 @@
+FROM    ubuntu:22.04
+
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH
+
+ENV     DEBIAN_FRONTEND=noninteractive
+
+RUN     apt-get -qq update -y && \
+        apt-get -qq -y install wget git sudo alien curl libicu70 sudo && \
+        apt autoclean
+
+COPY    build-files/convert-rpm.sh /tmp
+
+RUN     /tmp/convert-rpm.sh
+
+RUN     dpkg --install /tmp/dotnet-*.deb && \
+        rm -rf /tmp/*.deb && \
+        echo "Using SDK - `dotnet --version`"
+
+ADD     ${RUNNERPATCH} /tmp/runner.patch
+
+RUN     cd /tmp && \
+        git clone -q ${RUNNERREPO} && \
+        cd runner && \
+        git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
+        git apply /tmp/runner.patch 
+
+RUN     cd /tmp/runner/src && \
+        ./dev.sh layout && \
+        ./dev.sh package && \
+        ./dev.sh test && \
+        rm -rf /root/.dotnet /root/.nuget
+
+RUN     useradd -c "Action Runner" -m ubuntu && \
+        usermod -L ubuntu && \
+        echo "ubuntu  ALL=(ALL)       NOPASSWD: ALL" >/etc/sudoers.d/ubuntu
+
+RUN     mkdir -p /opt/runner && \
+        tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner && \
+        chown -R ubuntu:ubuntu /opt/runner && \
+        su -c "/opt/runner/config.sh --version" ubuntu
+
+RUN     apt-get -qq -y install cmake make automake autoconf m4 gcc-12-base libtool
+
+RUN     rm -rf /tmp/runner /tmp/runner.patch /tmp/convert-rpm.sh
+    
+USER    ubuntu
+
+EXPOSE  443
+
+CMD     /bin/bash
