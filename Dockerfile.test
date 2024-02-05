@@ -1,0 +1,7 @@
+FROM    localhost/runner:almalinux
+
+ARG     REPO TOKEN
+
+RUN     /opt/runner/config.sh --url ${REPO} --token ${TOKEN}
+
+CMD     /opt/runner/run.sh

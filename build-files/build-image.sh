@@ -3,7 +3,7 @@
 update_fresh_container() {
     echo "Upgrading and installing packages"
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update -y
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install alien -y
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install alien libicu70 -y
     if [ $? -ne 0 ]; then
         exit 32
     fi
@@ -23,13 +23,15 @@ setup_dotnet_sdk() {
             PKGS="dotnet-apphost-pack-7.0-7.0.15-1.el9_3 dotnet-host-8.0.1-1.el9_3"
             PKGS="${PKGS} dotnet-hostfxr-7.0-7.0.15-1.el9_3 dotnet-targeting-pack-7.0-7.0.15-1.el9_3"
             PKGS="${PKGS} dotnet-templates-7.0-7.0.115-1.el9_3 dotnet-runtime-7.0-7.0.15-1.el9_3"
-            PKGS="${PKGS} dotnet-sdk-7.0-7.0.115-1.el9_3"
+            PKGS="${PKGS} dotnet-sdk-7.0-7.0.115-1.el9_3 aspnetcore-runtime-7.0-7.0.15-1.el9_3"
+            PKGS="${PKGS} aspnetcore-targeting-pack-7.0-7.0.15-1.el9_3 netstandard-targeting-pack-2.1-8.0.101-1.el9_3"
             ;;
         s390x)
             PKGS="dotnet-host-8.0.1-1.el9_3 dotnet-apphost-pack-6.0-6.0.26-1.el9_3"
             PKGS="${PKGS} dotnet-hostfxr-6.0-6.0.26-1.el9_3 dotnet-targeting-pack-6.0-6.0.26-1.el9_3"
             PKGS="${PKGS} dotnet-templates-6.0-6.0.126-1.el9_3 dotnet-runtime-6.0-6.0.26-1.el9_3"
-            PKGS="${PKGS} dotnet-sdk-6.0-6.0.126-1.el9_3"
+            PKGS="${PKGS} dotnet-sdk-6.0-6.0.126-1.el9_3 aspnetcore-runtime-6.0-6.0.26-1.el9_3"
+            PKGS="${PKGS} aspnetcore-targeting-pack-6.0-6.0.26-1.el9_3 netstandard-targeting-pack-2.1-8.0.101-1.el9_3"
             ;;
         *)
             echo "Unsupported architecture ${ARCH}" >&2

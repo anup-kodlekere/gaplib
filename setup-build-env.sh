@@ -149,6 +149,7 @@ do
             ;;
     esac
 done
+shift $(( OPTIND - 1 ))
 run "$@"
 RC=$?
 exit ${RC}

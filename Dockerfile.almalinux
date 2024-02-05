@@ -1,0 +1,43 @@
+FROM    almalinux:9
+
+ARG     RUNNERREPO="https://github.com/actions/runner" SDK=6.0 RUNNERPATCH
+
+RUN     dnf update -y -q && \
+        dnf install -y -q wget git which langpacks-en glibc-all-langpacks sudo
+        
+RUN     dnf install -y -q dotnet-sdk-${SDK} && \
+        echo "Using SDK - `dotnet --version`"
+
+ADD     ${RUNNERPATCH} /tmp/runner.patch
+
+RUN     cd /tmp && \
+        git clone -q ${RUNNERREPO} && \
+        cd runner && \
+        git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
+        git apply /tmp/runner.patch 
+
+RUN     cd /tmp/runner/src && \
+        ./dev.sh layout && \
+        ./dev.sh package && \
+        ./dev.sh test && \
+        rm -rf /root/.dotnet /root/.nuget
+
+RUN     useradd -c "Action Runner" -m almalinux && \
+        usermod -L almalinux && \
+        echo "almalinux  ALL=(ALL)       NOPASSWD: ALL" >/etc/sudoers.d/almalinux
+
+RUN     mkdir -p /opt/runner && \
+        tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner && \
+        chown -R almalinux:almalinux /opt/runner && \
+        su -c "/opt/runner/config.sh --version" almalinux
+
+RUN     dnf install -y -q cmake make automake autoconf m4 gcc gcc-c++ libtool epel-release
+
+RUN     rm -rf /tmp/runner /var/cache/dnf/* /tmp/runner.patch && \
+        dnf clean all
+    
+USER    almalinux
+
+EXPOSE  443
+
+CMD     /bin/bash
