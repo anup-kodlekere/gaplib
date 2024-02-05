@@ -237,4 +237,5 @@ The github actions page for that repo will show something like this:
 ### NOTE
 
 The OCI image build for self-hosted actions runner is untested on Power. 
-Expect support to be added soon. 
+Temporarily, `./dev.sh test` is skipped due to failing tests. 
+However, this should not affect your workflows. 

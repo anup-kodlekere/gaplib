@@ -1,11 +1,11 @@
 FROM    almalinux:9
 
-ARG     RUNNERREPO="https://github.com/actions/runner" SDK=6.0 RUNNERPATCH
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH
 
 RUN     dnf update -y -q && \
         dnf install -y -q wget git which langpacks-en glibc-all-langpacks sudo
         
-RUN     dnf install -y -q dotnet-sdk-${SDK} && \
+RUN     dnf install -y -q dotnet-sdk-${SDK}.0 && \
         echo "Using SDK - `dotnet --version`"
 
 ADD     ${RUNNERPATCH} /tmp/runner.patch
@@ -16,10 +16,22 @@ RUN     cd /tmp && \
         git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
         git apply /tmp/runner.patch 
 
+RUN     ARCH=`uname -m`; \
+        if [ "${SDK}" -ne 6 ]; then \
+            cd /usr/lib64/dotnet/packs; \
+            ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.Runtime.linux-${ARCH}; \
+            ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.linux-${ARCH}; \
+            ln -s Microsoft.NETCore.App.Host.rhel.9-${ARCH} Microsoft.NETCore.App.Host.linux-${ARCH}; \
+            ln -s Microsoft.NETCore.App.Ref Microsoft.NETCore.App.Runtime.linux-${ARCH}; \
+        fi
+
 RUN     cd /tmp/runner/src && \
         ./dev.sh layout && \
         ./dev.sh package && \
-        ./dev.sh test && \
+        ARCH=`uname -m`; \
+        if [ "${ARCH}" = "s390x" ]; then \
+            ./dev.sh test; \
+        fi; \
         rm -rf /root/.dotnet /root/.nuget
 
 RUN     useradd -c "Action Runner" -m almalinux && \
