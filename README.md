@@ -1,20 +1,22 @@
 # gaplib
 GitHub Actions on Power and Z OCI and LXD Image Build
-* [What is it](#what-is-it)
-* [Building](#building)
-  - [LXD Image Used by Action Runner](#lxd-image-used-by-action-runner)
-    - [Pre-Reqs](#pre-reqs)
-    - [Running the Build](#running-build)
-  - [OCI Image used as Self-Hosted Action Runner](#oci-image-used-as-self-hosted-action-runner)
-    - [Pre-Reqs](#pre-reqs-1)
-    - [Building Images](#building-images)
-* [Using](#using)
-   - [LXD Image](#lxd-based)
-   - [Self-Hosted](#self-hosted)
-     - [Configuring](#configuring)
+- [gaplib](#gaplib)
+  - [What is it](#what-is-it)
+  - [Building](#building)
+    - [LXD Image used by Actions Runner](#lxd-image-used-by-actions-runner)
+      - [Pre-reqs](#pre-reqs)
+      - [Running Build](#running-build)
+    - [OCI Image used as Self-Hosted Action Runner](#oci-image-used-as-self-hosted-action-runner)
+      - [Pre-reqs](#pre-reqs-1)
+      - [Building Images](#building-images)
+  - [Using](#using)
+    - [LXD-based](#lxd-based)
+    - [Self-Hosted](#self-hosted)
+      - [Configuring](#configuring)
         - [Sample Build](#sample-build)
-     - [Running](#running)
+      - [Running](#running)
         - [Sample Run](#sample-run)
+    - [NOTE](#note)
 
 ## What is it
 Simple automation pipeline to build: 
@@ -127,7 +129,7 @@ CMD     /opt/runner/run.sh
 ```
 
 To build:
-* __Docker__: `docker build --build-arg=TOKEN=xxxxxx --squash-all -f Dockerfile.test --tag runner:test .`
+* __Docker__: `docker build --build-arg=TOKEN=xxxxxx --build-arg=REPO=yyyyy  --squash-all -f Dockerfile.test --tag runner:test .`
 * __Podman__: `podman build i--build-arg=TOKEN=xxxxx --build-arg=REPO=yyyyy  --squash-all -f Dockerfile.test --tag runner:test --from localhost/runner:ubuntu .`
 
 ##### Sample Build
@@ -231,3 +233,9 @@ Current runner version: '2.312.0'
 
 The github actions page for that repo will show something like this:
 ![Build Succeeded](CI_Job.png)
+
+### NOTE
+
+The OCI image build for self-hosted actions runner is untested on Power. 
+Temporarily, `./dev.sh test` is skipped due to failing tests. 
+However, this should not affect your workflows. 
