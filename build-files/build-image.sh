@@ -62,10 +62,10 @@ setup_dotnet_sdk() {
 
     if [ ${SDK} -ne 6 ]; then
         pushd /usr/lib64/dotnet/packs >/dev/null
-        ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.Runtime.linux-${ARCH}
-        ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.linux-${ARCH}
-        ln -s Microsoft.NETCore.App.Host.rhel.9-${ARCH} Microsoft.NETCore.App.Host.linux-${ARCH}
-        ln -s Microsoft.NETCore.App.Ref Microsoft.NETCore.App.Runtime.linux-${ARCH}
+        sudo ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.Runtime.linux-${ARCH}
+        sudo ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.linux-${ARCH}
+        sudo ln -s Microsoft.NETCore.App.Host.rhel.9-${ARCH} Microsoft.NETCore.App.Host.linux-${ARCH}
+        sudo ln -s Microsoft.NETCore.App.Ref Microsoft.NETCore.App.Runtime.linux-${ARCH}
         popd >/dev/null
     fi
 
