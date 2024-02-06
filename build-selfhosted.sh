@@ -56,6 +56,7 @@ do
     if [ ! -f Dockerfile.${dist} ]; then
         echo "${dist} not supported" >&2
     else 
-        ${BUILDER} build -f Dockerfile.${dist} --build-arg RUNNERPATCH=build-files/runner-${ARCH}.patch --build-arg SDK=${SDK} --tag runner:${dist} .
+        ${BUILDER} build -f Dockerfile.${dist} --build-arg RUNNERPATCH=build-files/runner-${ARCH}.patch \
+            --build-arg SDK=${SDK} --build-arg ARCH=${ARCH} --tag runner:${dist} .
     fi
 done
