@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest-ppc64le, ubuntu-22.04-s390x]
+        os: [ubuntu-22.04-ppc64le, ubuntu-22.04-s390x]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -34,7 +34,7 @@ jobs:
       runs-on: ${{ matrix.os }}
       strategy:
         matrix:
-          os: [ubuntu-latest-ppc64le, ubuntu-22.04-s390x]
+          os: [ubuntu-22.04-ppc64le, ubuntu-22.04-s390x]
 
       # Steps represent a sequence of tasks that will be executed as part of the job
       steps:
