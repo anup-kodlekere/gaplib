@@ -18,15 +18,15 @@ update_fresh_container() {
 
 setup_dotnet_sdk() {
     MIRROR="https://mirror.lchs.network/pub/almalinux/9.3/AppStream/${ARCH}/os/Packages"
-    case "${ARCH}" in 
-        ppc64le)
+    case "${SDK}" in 
+        7)
             PKGS="dotnet-apphost-pack-7.0-7.0.15-1.el9_3 dotnet-host-8.0.1-1.el9_3"
             PKGS="${PKGS} dotnet-hostfxr-7.0-7.0.15-1.el9_3 dotnet-targeting-pack-7.0-7.0.15-1.el9_3"
             PKGS="${PKGS} dotnet-templates-7.0-7.0.115-1.el9_3 dotnet-runtime-7.0-7.0.15-1.el9_3"
             PKGS="${PKGS} dotnet-sdk-7.0-7.0.115-1.el9_3 aspnetcore-runtime-7.0-7.0.15-1.el9_3"
             PKGS="${PKGS} aspnetcore-targeting-pack-7.0-7.0.15-1.el9_3 netstandard-targeting-pack-2.1-8.0.101-1.el9_3"
             ;;
-        s390x)
+        6)
             PKGS="dotnet-host-8.0.1-1.el9_3 dotnet-apphost-pack-6.0-6.0.26-1.el9_3"
             PKGS="${PKGS} dotnet-hostfxr-6.0-6.0.26-1.el9_3 dotnet-targeting-pack-6.0-6.0.26-1.el9_3"
             PKGS="${PKGS} dotnet-templates-6.0-6.0.126-1.el9_3 dotnet-runtime-6.0-6.0.26-1.el9_3"
@@ -53,12 +53,21 @@ setup_dotnet_sdk() {
     done
 
     echo "Installing dotnet"
-    sudo DEBIAN_FRONTEND=noninteractive dpkg --install /tmp/dotnet-*.deb
+    sudo DEBIAN_FRONTEND=noninteractive dpkg --install /tmp/*.deb
     if [ $? -ne 0 ]; then
         return 3
     fi
-    sudo rm -f /tmp/dotnet-*.deb
+    sudo rm -f /tmp/*.deb
     popd >/dev/null
+
+    if [ ${SDK} -ne 6 ]; then
+        pushd /usr/lib64/dotnet/packs >/dev/null
+        ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.Runtime.linux-${ARCH}
+        ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.linux-${ARCH}
+        ln -s Microsoft.NETCore.App.Host.rhel.9-${ARCH} Microsoft.NETCore.App.Host.linux-${ARCH}
+        ln -s Microsoft.NETCore.App.Ref Microsoft.NETCore.App.Runtime.linux-${ARCH}
+        popd >/dev/null
+    fi
 
     echo "Using SDK - `dotnet --version`"
 
@@ -142,12 +151,16 @@ run() {
 
 export HOME=/home/ubuntu
 ARCH=`uname -m`
+SDK=""
 RUNNERREPO="https://github.com/actions/runner"
-while getopts "a:" opt
+while getopts "a:s:" opt
 do
     case ${opt} in
         a)
             RUNNERREPO=${OPTARG}
+            ;;
+        s)
+            SDK=${OPTARG}
             ;;
         *)
             exit 4
@@ -155,5 +168,17 @@ do
     esac
 done
 shift $(( OPTIND - 1 ))
+
+if [ -z "${SDK}" ]; then
+    case ${ARCH} in
+        ppc64le)
+            SDK=7
+            ;;
+        s390x)
+            SDK=6
+            ;;
+    esac
+fi
+
 run "$@"
 exit $?

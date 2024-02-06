@@ -1,19 +1,20 @@
 FROM    registry.opensuse.org/opensuse/tumbleweed:latest
 
-ARG     RUNNERREPO="https://github.com/actions/runner" 
+ARG     RUNNERREPO="https://github.com/actions/runner" SDK RUNNERPATCH ARCH
 
-RUN     zypper update -y && \
-        zypper install -y wget git which libicu awk sudo
+RUN     zypper dup -y && \
+        zypper update -y && \
+        zypper install -y wget git which libicu73 gawk sudo
 
 COPY    build-files/convert-rpm.sh /tmp
 
-RUN     /tmp/convert-rpm.sh
+RUN     /tmp/convert-rpm.sh ${SDK}
 
 RUN     rpm --install --nodeps --nosignature /tmp/*.rpm && \
         rm -rf /tmp/*.rpm && \
         echo "Using SDK - `dotnet --version`"
 
-ADD     ${RUNNERPATCH} /tmp/runner.patch
+COPY    ${RUNNERPATCH} /tmp/runner.patch
 
 RUN     cd /tmp && \
         git clone -q ${RUNNERREPO} && \
@@ -21,8 +22,7 @@ RUN     cd /tmp && \
         git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
         git apply /tmp/runner.patch 
 
-RUN     ARCH=`uname -m`; \
-        if [ "${SDK}" -ne 6 ]; then \
+RUN     if [ "${SDK}" -ne 6 ]; then \
             cd /usr/lib64/dotnet/packs; \
             ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.Runtime.linux-${ARCH}; \
             ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.linux-${ARCH}; \
@@ -33,10 +33,7 @@ RUN     ARCH=`uname -m`; \
 RUN     cd /tmp/runner/src && \
         ./dev.sh layout && \
         ./dev.sh package && \
-        ARCH=`uname -m`; \
-        if [ "${ARCH}" = "s390x" ]; then \
-            ./dev.sh test; \
-        fi; \
+        ./dev.sh test && \
         rm -rf /root/.dotnet /root/.nuget
 
 RUN     useradd -c "Action Runner" -m opensuse && \
