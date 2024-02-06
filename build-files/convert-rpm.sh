@@ -19,7 +19,7 @@ case "${SDK}" in
         PKGS="${PKGS} aspnetcore-targeting-pack-6.0-6.0.26-1.el9_3 netstandard-targeting-pack-2.1-8.0.101-1.el9_3"
         ;;
     *)
-        echo "Unsupported architecture ${ARCH}" >&2
+        echo "Unsupported SDK ${SDK}" >&2
         exit 1
         ;;
 esac
