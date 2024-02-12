@@ -16,7 +16,6 @@ GitHub Actions on Power and Z OCI and LXD Image Build
         - [Sample Build](#sample-build)
       - [Running](#running)
         - [Sample Run](#sample-run)
-    - [NOTE](#note)
 
 ## What is it
 Simple automation pipeline to build: 
@@ -233,9 +232,3 @@ Current runner version: '2.312.0'
 
 The github actions page for that repo will show something like this:
 ![Build Succeeded](CI_Job.png)
-
-### NOTE
-
-The OCI image build for self-hosted actions runner is untested on Power. 
-Temporarily, `./dev.sh test` is skipped due to failing tests. 
-However, this should not affect your workflows. 
