@@ -7,6 +7,9 @@ update_fresh_container() {
     if [ $? -ne 0 ]; then
         exit 32
     fi
+    if [ ${BTOOLS} -eq 1 ]; then
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install wget gcc make zlib1g-dev libffi-dev libtool libyaml-dev -y
+    fi
     sudo apt autoclean
 
     echo "Initializing LXD environment"
@@ -124,6 +127,22 @@ install_runner() {
     return $?
 }
 
+install_python() {
+    echo "Installing Python"
+    chmod +x /home/ubuntu/install-python.sh
+    sudo /home/ubuntu/install-python.sh
+    sudo chown ubuntu:ubuntu -R /opt/runner
+    return $?
+}
+
+install_ruby() {
+    echo "Installing Ruby"
+    chmod +x /home/ubuntu/install-ruby.sh
+    sudo /home/ubuntu/install-ruby.sh
+    sudo chown ubuntu:ubuntu -R /opt/runner
+    return $?
+}
+
 cleanup() {
     rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-${ARCH}.patch \
            /tmp/runner /tmp/preseed-yaml
@@ -142,6 +161,11 @@ run() {
             if [ ${RC} -eq 0 ]; then
                 install_runner
                 RC=$?
+		if [ ${BTOOLS} -eq 1 ]; then
+		    install_python
+		    install_ruby
+		    RC=$?
+		fi
             fi
         fi
     fi
@@ -153,7 +177,8 @@ export HOME=/home/ubuntu
 ARCH=`uname -m`
 SDK=""
 RUNNERREPO="https://github.com/actions/runner"
-while getopts "a:s:" opt
+BTOOLS="0"
+while getopts "a:s:t:" opt
 do
     case ${opt} in
         a)
@@ -161,6 +186,9 @@ do
             ;;
         s)
             SDK=${OPTARG}
+            ;;
+        t)
+            BTOOLS=${OPTARG}
             ;;
         *)
             exit 4

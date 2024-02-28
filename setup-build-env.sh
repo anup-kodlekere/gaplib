@@ -11,6 +11,7 @@ usage() {
     echo "-s <SDK level>               .NET SDK level"
     echo "                             - Defaults to value in build script for ppc64le"
     echo "                             - Ignored for s390x which uses an RPM"
+    echo "-t <1|0>                     - Include build tools/compilers in image. Defaults to 0."
     echo "-h                           Display this usage information"
     exit
 }
@@ -75,8 +76,14 @@ build_image_in_container() {
   echo "Copy the gha-service unit file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/gha-runner.service "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service"
 
+  echo "Copy the install-python script into gha-builder"
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-python.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-python.sh"
+
+  echo "Copy the install-ruby script into gha-builder"
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-ruby.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-ruby.sh"
+
   echo "Running build-image.sh"
-  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
+  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} -s ${SDK} -t ${BTOOLS}
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
@@ -113,6 +120,7 @@ prolog() {
   export ACTION_RUNNER="https://github.com/actions/runner"
   export EXPORT="distro/lxc-runner"
   export SDK=""
+  export BTOOLS="0"
 
   export OS_NAME="${OS_NAME:-ubuntu}"
   export OS_VERSION="${OS_VERSION:-22.04}"
@@ -129,7 +137,7 @@ prolog() {
 }
 
 prolog
-while getopts "a:o:hs:" opt
+while getopts "a:o:ht:s:" opt
 do
     case "${opt}" in
         a)
@@ -141,8 +149,11 @@ do
         h)
             usage
             ;;
+        t)
+            BTOOLS="${OPTARG}"
+            ;;
         s)
-            SDK="-s ${OPTARG}"
+            SDK="${OPTARG}"
             ;;
         *)
             usage
