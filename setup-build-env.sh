@@ -42,7 +42,7 @@ build_image_in_container() {
   lxc ls
   
   # give container some time to wake up and remap the filesystem
-  for ((i = 0; i < 30; i++))
+  for ((i = 0; i < 90; i++))
   do
       CHECK=`lxc exec ${BUILD_CONTAINER} -- stat ${BUILD_HOME} 2>/dev/null`
       if [ -n "${CHECK}" ]; then
