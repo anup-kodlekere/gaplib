@@ -47,16 +47,17 @@ RUN     mkdir -p /opt/runner && \
         chown -R ubuntu:ubuntu /opt/runner && \
         su -c "/opt/runner/config.sh --version" ubuntu
 
-RUN     apt-get -qq -y install cmake make automake autoconf m4 gcc-12-base libtool zlib1g-dev libffi-dev libyaml-dev
+RUN     apt-get -qq -y install cmake make automake autoconf m4 gcc-12-base libtool
 
 COPY    build-files/install-python.sh /tmp
 COPY    build-files/install-ruby.sh /tmp
 
 RUN     if [ "${BTOOLS}" -eq 1 ]; then \
-	    chmod +x /tmp/install-python.sh && \
-	    /tmp/install-python.sh && \
-	    chmod +x /tmp/install-ruby.sh && \
-	    /tmp/install-ruby.sh && \
+	    apt-get -qq -y install openjdk-11-jdk libssl-dev ruby perl; \
+	    chmod +x /tmp/install-python.sh; \
+	    /tmp/install-python.sh; \
+	    chmod +x /tmp/install-ruby.sh; \
+	    /tmp/install-ruby.sh; \
 	    chown -R ubuntu:ubuntu /opt/runner; \
 	fi
 

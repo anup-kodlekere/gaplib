@@ -7,9 +7,6 @@ update_fresh_container() {
     if [ $? -ne 0 ]; then
         exit 32
     fi
-    if [ ${BTOOLS} -eq 1 ]; then
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install wget gcc make zlib1g-dev libffi-dev libtool libyaml-dev -y
-    fi
     sudo apt autoclean
 
     echo "Initializing LXD environment"
