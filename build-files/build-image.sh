@@ -17,6 +17,11 @@ update_fresh_container() {
 }
 
 setup_dotnet_sdk() {
+    if [[ "${ARCH}" = "ppc64le" && ${SDK} -eq 6 ]]; then
+	echo "DOTNET ${SDK} is not supported on architecture ${ARCH}" >&2
+	return 1
+    fi
+
     MIRROR="https://mirror.lchs.network/pub/almalinux/9.3/AppStream/${ARCH}/os/Packages"
     case "${SDK}" in 
         7)
@@ -140,9 +145,17 @@ install_ruby() {
     return $?
 }
 
+install_dotnet() {
+    echo "Installing DOTNET"
+    chmod +x /home/ubuntu/install-dotnet.sh
+    sudo /home/ubuntu/install-dotnet.sh
+    return $?
+}
+
 cleanup() {
     rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-${ARCH}.patch \
-           /tmp/runner /tmp/preseed-yaml
+           /tmp/runner /tmp/preseed-yaml \
+           /home/ubuntu/install-python.sh /home/ubuntu/install-ruby.sh /home/ubuntu/install-dotnet.sh
 }
 
 run() {
@@ -161,6 +174,7 @@ run() {
 		if [ ${BTOOLS} -eq 1 ]; then
 		    install_python
 		    install_ruby
+		    install_dotnet
 		    RC=$?
 		fi
             fi

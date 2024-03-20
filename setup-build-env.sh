@@ -82,6 +82,9 @@ build_image_in_container() {
   echo "Copy the install-ruby script into gha-builder"
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-ruby.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-ruby.sh"
 
+  echo "Copy the install-dotnet script into gha-builder"
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-dotnet.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-dotnet.sh"
+
   echo "Running build-image.sh"
   lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} -s ${SDK} -t ${BTOOLS}
   RC=$?

@@ -56,6 +56,10 @@ RUN     if [ "${BTOOLS}" -eq 1 ]; then \
 	    chown -R almalinux:almalinux /opt/runner; \
         fi
 
+RUN     if [ "${BTOOLS}" -eq 1 ]; then \
+	    dnf install -y -q dotnet-sdk-[6-7-8]*.0; \
+	fi
+
 RUN     rm -rf /tmp/runner /var/cache/dnf/* /tmp/runner.patch /tmp/install-python.sh /tmp/install-ruby.sh && \
         dnf clean all
     
