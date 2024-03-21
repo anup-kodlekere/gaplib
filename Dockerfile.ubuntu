@@ -49,17 +49,14 @@ RUN     mkdir -p /opt/runner && \
 
 RUN     apt-get -qq -y install cmake make automake autoconf m4 gcc-12-base libtool
 
-COPY    build-files/install-python.sh /tmp
-COPY    build-files/install-ruby.sh /tmp
-COPY    build-files/install-dotnet.sh /tmp
+COPY    --chmod=755 build-files/install-python.sh /tmp
+COPY    --chmod=755 build-files/install-ruby.sh /tmp
+COPY    --chmod=755 build-files/install-dotnet.sh /tmp
 
 RUN     if [ "${BTOOLS}" -eq 1 ]; then \
 	    apt-get -qq -y install openjdk-11-jdk libssl-dev ruby perl; \
-	    chmod +x /tmp/install-python.sh; \
 	    /tmp/install-python.sh; \
-	    chmod +x /tmp/install-ruby.sh; \
 	    /tmp/install-ruby.sh; \
-	    chmod +x /tmp/install-dotnet.sh; \
 	    /tmp/install-dotnet.sh; \
 	    chown -R ubuntu:ubuntu /opt/runner; \
 	fi
