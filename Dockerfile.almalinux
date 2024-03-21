@@ -1,9 +1,12 @@
 FROM    almalinux:9
 
-ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH BTOOLS
 
 RUN     dnf update -y -q && \
         dnf install -y -q wget git which langpacks-en glibc-all-langpacks sudo
+
+RUN     dnf install -y -q dnf-plugins-core && \
+	dnf config-manager --set-enabled crb
         
 RUN     dnf install -y -q dotnet-sdk-${SDK}.0 && \
         echo "Using SDK - `dotnet --version`"
@@ -41,7 +44,21 @@ RUN     mkdir -p /opt/runner && \
 
 RUN     dnf install -y -q cmake make automake autoconf m4 gcc gcc-c++ libtool epel-release
 
-RUN     rm -rf /tmp/runner /var/cache/dnf/* /tmp/runner.patch && \
+COPY    --chmod=755 build-files/install-python.sh /tmp
+COPY    --chmod=755 build-files/install-ruby.sh /tmp
+
+RUN     if [ "${BTOOLS}" -eq 1 ]; then \
+	    dnf install -y -q java-11-openjdk openssl-devel ruby perl; \
+	    /tmp/install-python.sh; \
+	    /tmp/install-ruby.sh; \
+	    chown -R almalinux:almalinux /opt/runner; \
+        fi
+
+RUN     if [ "${BTOOLS}" -eq 1 ]; then \
+	    dnf install -y -q dotnet-sdk-[6-7-8]*; \
+	fi
+
+RUN     rm -rf /tmp/runner /var/cache/dnf/* /tmp/runner.patch /tmp/install-python.sh /tmp/install-ruby.sh && \
         dnf clean all
     
 USER    almalinux

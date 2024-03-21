@@ -17,6 +17,11 @@ update_fresh_container() {
 }
 
 setup_dotnet_sdk() {
+    if [[ "${ARCH}" = "ppc64le" && ${SDK} -eq 6 ]]; then
+	echo "DOTNET ${SDK} is not supported on architecture ${ARCH}" >&2
+	return 1
+    fi
+
     MIRROR="https://mirror.lchs.network/pub/almalinux/9.3/AppStream/${ARCH}/os/Packages"
     case "${SDK}" in 
         7)
@@ -124,9 +129,33 @@ install_runner() {
     return $?
 }
 
+install_python() {
+    echo "Installing Python"
+    chmod +x /home/ubuntu/install-python.sh
+    sudo /home/ubuntu/install-python.sh
+    sudo chown ubuntu:ubuntu -R /opt/runner
+    return $?
+}
+
+install_ruby() {
+    echo "Installing Ruby"
+    chmod +x /home/ubuntu/install-ruby.sh
+    sudo /home/ubuntu/install-ruby.sh
+    sudo chown ubuntu:ubuntu -R /opt/runner
+    return $?
+}
+
+install_dotnet() {
+    echo "Installing DOTNET"
+    chmod +x /home/ubuntu/install-dotnet.sh
+    sudo /home/ubuntu/install-dotnet.sh
+    return $?
+}
+
 cleanup() {
     rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-${ARCH}.patch \
-           /tmp/runner /tmp/preseed-yaml
+           /tmp/runner /tmp/preseed-yaml \
+           /home/ubuntu/install-python.sh /home/ubuntu/install-ruby.sh /home/ubuntu/install-dotnet.sh
 }
 
 run() {
@@ -142,6 +171,12 @@ run() {
             if [ ${RC} -eq 0 ]; then
                 install_runner
                 RC=$?
+		if [ ${BTOOLS} -eq 1 ]; then
+		    install_python
+		    install_ruby
+		    install_dotnet
+		    RC=$?
+		fi
             fi
         fi
     fi
@@ -153,7 +188,8 @@ export HOME=/home/ubuntu
 ARCH=`uname -m`
 SDK=""
 RUNNERREPO="https://github.com/actions/runner"
-while getopts "a:s:" opt
+BTOOLS="0"
+while getopts "a:s:t:" opt
 do
     case ${opt} in
         a)
@@ -161,6 +197,9 @@ do
             ;;
         s)
             SDK=${OPTARG}
+            ;;
+        t)
+            BTOOLS=${OPTARG}
             ;;
         *)
             exit 4

@@ -5,6 +5,7 @@ usage() {
     echo "Where flags:"
     echo "-b [docker|podman]           Image build tool to use - defaults to which it finds first"
     echo "-s <sdk>                     SDK to use (6 or 7 ...). Default 6 for s390x and 7 for ppc64le"
+    echo "-t [1|0]		       Include tools/compilers - defaults to 0"
     echo "-h                           Display this usage information"
     echo
     echo "If no distribution is specified then images for both are built"
@@ -14,6 +15,7 @@ usage() {
 ARCH=`uname -m`
 DISTROS=""
 BUILDER=`which podman 2>/dev/null`
+BTOOLS="0"
 if [ -z ${BUILDER} ]; then
     BUILDER=`which docker 2>/dev/null`
 fi
@@ -21,7 +23,7 @@ if [ -z ${BUILDER} ]; then
     echo "Need podman or docker installed" >&2
     exit 1
 fi
-while getopts "b:hs:" opt
+while getopts "b:ht:s:" opt
 do
     case "${opt}" in
         b)
@@ -29,6 +31,9 @@ do
             ;;
         h)
             usage
+            ;;
+        t)
+            BTOOLS="${OPTARG}"
             ;;
         s)
             SDK="${OPTARG}"
@@ -57,6 +62,6 @@ do
         echo "${dist} not supported" >&2
     else 
         ${BUILDER} build -f Dockerfile.${dist} --build-arg RUNNERPATCH=build-files/runner-${ARCH}.patch \
-            --build-arg SDK=${SDK} --build-arg ARCH=${ARCH} --tag runner:${dist} .
+            --build-arg SDK=${SDK} --build-arg ARCH=${ARCH} --build-arg BTOOLS=${BTOOLS} --tag runner:${dist} .
     fi
 done

@@ -1,6 +1,6 @@
 FROM    ubuntu:22.04
 
-ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH BTOOLS
 
 ENV     DEBIAN_FRONTEND=noninteractive
 
@@ -49,7 +49,19 @@ RUN     mkdir -p /opt/runner && \
 
 RUN     apt-get -qq -y install cmake make automake autoconf m4 gcc-12-base libtool
 
-RUN     rm -rf /tmp/runner /tmp/runner.patch /tmp/convert-rpm.sh
+COPY    --chmod=755 build-files/install-python.sh /tmp
+COPY    --chmod=755 build-files/install-ruby.sh /tmp
+COPY    --chmod=755 build-files/install-dotnet.sh /tmp
+
+RUN     if [ "${BTOOLS}" -eq 1 ]; then \
+	    apt-get -qq -y install openjdk-11-jdk libssl-dev ruby perl; \
+	    /tmp/install-python.sh; \
+	    /tmp/install-ruby.sh; \
+	    /tmp/install-dotnet.sh; \
+	    chown -R ubuntu:ubuntu /opt/runner; \
+	fi
+
+RUN     rm -rf /tmp/runner /tmp/runner.patch /tmp/convert-rpm.sh /tmp/install-python.sh /tmp/install-ruby.sh /tmp/install-dotnet.sh
     
 USER    ubuntu
 
