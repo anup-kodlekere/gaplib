@@ -129,7 +129,7 @@ CMD     /opt/runner/run.sh
 
 To build:
 * __Docker__: `docker build --build-arg=TOKEN=xxxxxx --build-arg=REPO=yyyyy --squash -f Dockerfile.test --tag runner:test .`
-* __Podman__: `podman build i--build-arg=TOKEN=xxxxx --build-arg=REPO=yyyyy  --squash-all -f Dockerfile.test --tag runner:test --from localhost/runner:ubuntu .`
+* __Podman__: `podman build --build-arg=TOKEN=xxxxx --build-arg=REPO=yyyyy  --squash-all -f Dockerfile.test --tag runner:test --from localhost/runner:ubuntu .`
 
 ##### Sample Build
 

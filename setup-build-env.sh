@@ -87,8 +87,12 @@ build_image_in_container() {
       echo "Runner build complete. Creating image snapshot."
       lxc publish "${BUILD_CONTAINER}" -f --alias "${IMAGE_ALIAS}" description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
   
-      echo "Export the image to ${EXPORT} for use elsewhere"
-      lxc image export "${IMAGE_ALIAS}" ${EXPORT}
+      if [ ${RC} -eq 0 ]; then
+          echo "Export the image to ${EXPORT} for use elsewhere"
+          lxc image export "${IMAGE_ALIAS}" ${EXPORT}
+      else
+          echo "Publish process failed with RC: $? - review log to determine cause of failure" >&2
+      fi
   else
       echo "Build process failed with RC: $? - review log to determine cause of failure" >&2
   fi
