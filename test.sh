@@ -7,7 +7,7 @@ export OS_VERSION="${OS_VERSION:-22.04}"
 export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
 export BUILD_HOME="/home/ubuntu"
 
-local BUILD_PREREQS_PATH="${SRCDIR}/build-files"
+export BUILD_PREREQS_PATH="${SRCDIR}/build-files"
 
 if [ ! -d "${BUILD_PREREQS_PATH}" ]; then
     echo "Check the BUILD_PREREQS_PATH specification" >&2
