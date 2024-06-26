@@ -1,0 +1,1235 @@
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+index 032387b..ccc59c4 100644
+--- a/.devcontainer/devcontainer.json
++++ b/.devcontainer/devcontainer.json
+@@ -4,7 +4,7 @@
+   "features": {
+     "ghcr.io/devcontainers/features/docker-in-docker:1": {},
+     "ghcr.io/devcontainers/features/dotnet": {
+-      "version": "6.0.421"
++      "version": "8.0.105"
+     },
+     "ghcr.io/devcontainers/features/node:1": {
+       "version": "16"
+diff --git a/.github/workflows/publish-image.yml b/.github/workflows/publish-image.yml
+index fa906b2..2932a26 100644
+--- a/.github/workflows/publish-image.yml
++++ b/.github/workflows/publish-image.yml
+@@ -25,10 +25,12 @@ jobs:
+       - name: Compute image version
+         id: image
+         uses: actions/github-script@v6
++        env:
++          RUNNER_VERSION: ${{ github.event.inputs.runnerVersion }}
+         with:
+           script: |
+             const fs = require('fs');
+-            const inputRunnerVersion = "${{ github.event.inputs.runnerVersion }}"
++            const inputRunnerVersion = process.env.RUNNER_VERSION;
+             if (inputRunnerVersion) {
+               console.log(`Using input runner version ${inputRunnerVersion}`)
+               core.setOutput('version', inputRunnerVersion);
+diff --git a/.gitignore b/.gitignore
+index 34d18c4..411fe40 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -26,4 +26,5 @@ _dotnetsdk
+ TestResults
+ TestLogs
+ .DS_Store
++.mono
+ **/*.DotSettings.user
+\ No newline at end of file
+diff --git a/images/Dockerfile b/images/Dockerfile
+index 81f5b9a..707da21 100644
+--- a/images/Dockerfile
++++ b/images/Dockerfile
+@@ -5,8 +5,8 @@ ARG TARGETOS
+ ARG TARGETARCH
+ ARG RUNNER_VERSION
+ ARG RUNNER_CONTAINER_HOOKS_VERSION=0.6.0
+-ARG DOCKER_VERSION=25.0.4
+-ARG BUILDX_VERSION=0.13.1
++ARG DOCKER_VERSION=25.0.5
++ARG BUILDX_VERSION=0.13.2
+ 
+ RUN apt update -y && apt install curl unzip -y
+ 
+diff --git a/src/Directory.Build.props b/src/Directory.Build.props
+index 9db5fac..b22a2b0 100644
+--- a/src/Directory.Build.props
++++ b/src/Directory.Build.props
+@@ -44,6 +44,9 @@
+   <PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND '$(PackageRuntime)' == 'linux-arm64'">
+     <DefineConstants>$(DefineConstants);ARM64</DefineConstants>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND '$(PackageRuntime)' == 'linux-ppc64le'">
++    <DefineConstants>$(DefineConstants);PPC64LE</DefineConstants>
++  </PropertyGroup>
+ 
+   <!-- Set TRACE/DEBUG vars -->
+   <PropertyGroup>
+diff --git a/src/Misc/externals.sh b/src/Misc/externals.sh
+index e057ecb..ce54597 100755
+--- a/src/Misc/externals.sh
++++ b/src/Misc/externals.sh
+@@ -190,3 +190,8 @@ if [[ "$PACKAGERUNTIME" == "linux-arm" ]]; then
+     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-armv7l.tar.gz" node16 fix_nested_dir
+     acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-linux-armv7l.tar.gz" node20 fix_nested_dir
+ fi
++
++if [[ "$PACKAGERUNTIME" == "linux-ppc64le" ]]; then
++    acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-ppc64le.tar.gz" node16 fix_nested_dir
++    acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-linux-ppc64le.tar.gz" node20 fix_nested_dir
++fi
+\ No newline at end of file
+diff --git a/src/Misc/layoutroot/config.sh b/src/Misc/layoutroot/config.sh
+index 14cc6ba..9b5b8e6 100755
+--- a/src/Misc/layoutroot/config.sh
++++ b/src/Misc/layoutroot/config.sh
+@@ -20,25 +20,29 @@ then
+ 
+     message="Execute sudo ./bin/installdependencies.sh to install any missing Dotnet Core 6.0 dependencies."
+ 
+-    ldd ./bin/libcoreclr.so | grep 'not found'
+-    if [ $? -eq 0 ]; then
+-        echo "Dependencies is missing for Dotnet Core 6.0"
+-        echo $message
+-        exit 1
+-    fi
++    ARCH=`uname -m`
++    if [ "${ARCH}" != "s390x" -a "${ARCH}" != "ppc64le" ]
++    then
++        ldd ./bin/libcoreclr.so | grep 'not found'
++        if [ $? -eq 0 ]; then
++            echo "Dependencies is missing for Dotnet Core 6.0"
++            echo $message
++            exit 1
++        fi
+ 
+-    ldd ./bin/libSystem.Security.Cryptography.Native.OpenSsl.so | grep 'not found'
+-    if [ $? -eq 0 ]; then
+-        echo "Dependencies is missing for Dotnet Core 6.0"
+-        echo $message
+-        exit 1
+-    fi
++        ldd ./bin/libSystem.Security.Cryptography.Native.OpenSsl.so | grep 'not found'
++        if [ $? -eq 0 ]; then
++            echo "Dependencies is missing for Dotnet Core 6.0"
++            echo $message
++            exit 1
++        fi
+ 
+-    ldd ./bin/libSystem.IO.Compression.Native.so | grep 'not found'
+-    if [ $? -eq 0 ]; then
+-        echo "Dependencies is missing for Dotnet Core 6.0"
+-        echo $message
+-        exit 1
++        ldd ./bin/libSystem.IO.Compression.Native.so | grep 'not found'
++        if [ $? -eq 0 ]; then
++            echo "Dependencies is missing for Dotnet Core 6.0"
++            echo $message
++            exit 1
++        fi
+     fi
+ 
+     if ! [ -x "$(command -v ldconfig)" ]; then
+diff --git a/src/Runner.Common/Constants.cs b/src/Runner.Common/Constants.cs
+index 9378104..7469ca0 100644
+--- a/src/Runner.Common/Constants.cs
++++ b/src/Runner.Common/Constants.cs
+@@ -58,7 +58,8 @@ namespace GitHub.Runner.Common
+             X86,
+             X64,
+             Arm,
+-            Arm64
++            Arm64,
++            Ppc64le
+         }
+ 
+         public static class Runner
+@@ -81,6 +82,8 @@ namespace GitHub.Runner.Common
+             public static readonly Architecture PlatformArchitecture = Architecture.Arm;
+ #elif ARM64
+             public static readonly Architecture PlatformArchitecture = Architecture.Arm64;
++#elif PPC64LE
++            public static readonly Architecture PlatformArchitecture = Architecture.Ppc64le;
+ #else
+             public static readonly Architecture PlatformArchitecture = Architecture.X64;
+ #endif
+diff --git a/src/Runner.Common/JobServerQueue.cs b/src/Runner.Common/JobServerQueue.cs
+index dd06073..74c12be 100644
+--- a/src/Runner.Common/JobServerQueue.cs
++++ b/src/Runner.Common/JobServerQueue.cs
+@@ -613,7 +613,7 @@ namespace GitHub.Runner.Common
+ 
+         private void SendResultsTelemetry(Exception ex)
+         {
+-            var issue = new Issue() { Type = IssueType.Warning, Message = $"Caught exception with results. {ex.Message}" };
++            var issue = new Issue() { Type = IssueType.Warning, Message = $"Caught exception with results. {HostContext.SecretMasker.MaskSecrets(ex.Message)}" };
+             issue.Data[Constants.Runner.InternalTelemetryIssueDataKey] = Constants.Runner.ResultsUploadFailure;
+ 
+             var telemetryRecord = new TimelineRecord()
+diff --git a/src/Runner.Common/RunServer.cs b/src/Runner.Common/RunServer.cs
+index c042796..50ad055 100644
+--- a/src/Runner.Common/RunServer.cs
++++ b/src/Runner.Common/RunServer.cs
+@@ -62,7 +62,10 @@ namespace GitHub.Runner.Common
+             CheckConnection();
+             return RetryRequest<AgentJobRequestMessage>(
+                 async () => await _runServiceHttpClient.GetJobMessageAsync(requestUri, id, VarUtil.OS, cancellationToken), cancellationToken,
+-                shouldRetry: ex => ex is not TaskOrchestrationJobAlreadyAcquiredException);
++                shouldRetry: ex =>
++                    ex is not TaskOrchestrationJobNotFoundException &&          // HTTP status 404
++                    ex is not TaskOrchestrationJobAlreadyAcquiredException &&   // HTTP status 409
++                    ex is not TaskOrchestrationJobUnprocessableException);      // HTTP status 422
+         }
+ 
+         public Task CompleteJobAsync(
+diff --git a/src/Runner.Common/Runner.Common.csproj b/src/Runner.Common/Runner.Common.csproj
+index 329a024..72d3643 100644
+--- a/src/Runner.Common/Runner.Common.csproj
++++ b/src/Runner.Common/Runner.Common.csproj
+@@ -1,11 +1,11 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFramework>net6.0</TargetFramework>
++    <TargetFramework>net8.0</TargetFramework>
+     <OutputType>Library</OutputType>
+-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
+     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+     <Version>$(Version)</Version>
+   </PropertyGroup>
+ 
+@@ -15,11 +15,11 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
++    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.4.0" />
+-    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
++    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
++    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
++    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+   </ItemGroup>
+ 
+   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+diff --git a/src/Runner.Common/Util/VarUtil.cs b/src/Runner.Common/Util/VarUtil.cs
+index 97273a1..c577871 100644
+--- a/src/Runner.Common/Util/VarUtil.cs
++++ b/src/Runner.Common/Util/VarUtil.cs
+@@ -53,6 +53,8 @@ namespace GitHub.Runner.Common.Util
+                         return "ARM";
+                     case Constants.Architecture.Arm64:
+                         return "ARM64";
++                    case Constants.Architecture.Ppc64le:
++                        return "PPC64LE";
+                     default:
+                         throw new NotSupportedException(); // Should never reach here.
+                 }
+diff --git a/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs b/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs
+index 15291be..a404a67 100644
+--- a/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs
++++ b/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs
+@@ -1,4 +1,5 @@
+ ﻿#if OS_WINDOWS
++#pragma warning disable CA1416
+ using System.IO;
+ using System.Security.Cryptography;
+ using System.Text;
+@@ -84,4 +85,5 @@ namespace GitHub.Runner.Listener.Configuration
+         }
+     }
+ }
++#pragma warning restore CA1416
+ #endif
+diff --git a/src/Runner.Listener/Runner.Listener.csproj b/src/Runner.Listener/Runner.Listener.csproj
+index 3cd72ec..7cbe9ac 100644
+--- a/src/Runner.Listener/Runner.Listener.csproj
++++ b/src/Runner.Listener/Runner.Listener.csproj
+@@ -1,11 +1,12 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFramework>net6.0</TargetFramework>
++    <TargetFramework>net8.0</TargetFramework>
+     <OutputType>Exe</OutputType>
+-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
++    <SelfContained>true</SelfContained>
+     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+     <Version>$(Version)</Version>
+     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+@@ -18,11 +19,11 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
++    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+-    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.4.0" />
+-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.4.0" />
++    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
++    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
++    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
+   </ItemGroup>
+ 
+   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+diff --git a/src/Runner.Listener/Runner.cs b/src/Runner.Listener/Runner.cs
+index 9acad83..d83cefa 100644
+--- a/src/Runner.Listener/Runner.cs
++++ b/src/Runner.Listener/Runner.cs
+@@ -32,10 +32,25 @@ namespace GitHub.Runner.Listener
+         private bool _inConfigStage;
+         private ManualResetEvent _completedCommand = new(false);
+ 
++        // <summary>
++        // Helps avoid excessive calls to Run Service when encountering non-retriable errors from /acquirejob.
++        // Normally we rely on the HTTP clients to back off between retry attempts. However, acquiring a job
++        // involves calls to both Run Serivce and Broker. And Run Service and Broker communicate with each other
++        // in an async fashion.
++        //
++        // When Run Service encounters a non-retriable error, it sends an async message to Broker. The runner will,
++        // however, immediately call Broker to get the next message. If the async event from Run Service to Broker
++        // has not yet been processed, the next message from Broker may be the same job message.
++        //
++        // The error throttler helps us back off when encountering successive, non-retriable errors from /acquirejob.
++        // </summary>
++        private IErrorThrottler _acquireJobThrottler;
++
+         public override void Initialize(IHostContext hostContext)
+         {
+             base.Initialize(hostContext);
+             _term = HostContext.GetService<ITerminal>();
++            _acquireJobThrottler = HostContext.CreateService<IErrorThrottler>();
+         }
+ 
+         public async Task<int> ExecuteCommand(CommandSettings command)
+@@ -213,10 +228,12 @@ namespace GitHub.Runner.Listener
+                             var configFile = Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Root), config.Key);
+                             var configContent = Convert.FromBase64String(config.Value);
+ #if OS_WINDOWS
++#pragma warning disable CA1416
+                             if (configFile == HostContext.GetConfigFile(WellKnownConfigFile.RSACredentials))
+                             {
+                                 configContent = ProtectedData.Protect(configContent, null, DataProtectionScope.LocalMachine);
+                             }
++#pragma warning restore CA1416
+ #endif
+                             File.WriteAllBytes(configFile, configContent);
+                             File.SetAttributes(configFile, File.GetAttributes(configFile) | FileAttributes.Hidden);
+@@ -563,13 +580,16 @@ namespace GitHub.Runner.Listener
+                                         await runServer.ConnectAsync(new Uri(messageRef.RunServiceUrl), creds);
+                                         try
+                                         {
+-                                            jobRequestMessage =
+-                                            await runServer.GetJobMessageAsync(messageRef.RunnerRequestId,
+-                                            messageQueueLoopTokenSource.Token);
++                                            jobRequestMessage = await runServer.GetJobMessageAsync(messageRef.RunnerRequestId, messageQueueLoopTokenSource.Token);
++                                            _acquireJobThrottler.Reset();
+                                         }
+-                                        catch (TaskOrchestrationJobAlreadyAcquiredException)
++                                        catch (Exception ex) when (
++                                            ex is TaskOrchestrationJobNotFoundException ||          // HTTP status 404
++                                            ex is TaskOrchestrationJobAlreadyAcquiredException ||   // HTTP status 409
++                                            ex is TaskOrchestrationJobUnprocessableException)       // HTTP status 422
+                                         {
+-                                            Trace.Info("Job is already acquired, skip this message.");
++                                            Trace.Info($"Skipping message Job. {ex.Message}");
++                                            await _acquireJobThrottler.IncrementAndWaitAsync(messageQueueLoopTokenSource.Token);
+                                             continue;
+                                         }
+                                         catch (Exception ex)
+diff --git a/src/Runner.PluginHost/Runner.PluginHost.csproj b/src/Runner.PluginHost/Runner.PluginHost.csproj
+index df30f34..7c3d3c6 100644
+--- a/src/Runner.PluginHost/Runner.PluginHost.csproj
++++ b/src/Runner.PluginHost/Runner.PluginHost.csproj
+@@ -1,11 +1,12 @@
+ ﻿<Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFramework>net6.0</TargetFramework>
++    <TargetFramework>net8.0</TargetFramework>
+     <OutputType>Exe</OutputType>
+-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
++    <SelfContained>true</SelfContained>
+     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+     <Version>$(Version)</Version>
+     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+diff --git a/src/Runner.Plugins/Runner.Plugins.csproj b/src/Runner.Plugins/Runner.Plugins.csproj
+index 39245a3..d365000 100644
+--- a/src/Runner.Plugins/Runner.Plugins.csproj
++++ b/src/Runner.Plugins/Runner.Plugins.csproj
+@@ -1,11 +1,12 @@
+ ﻿<Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFramework>net6.0</TargetFramework>
++    <TargetFramework>net8.0</TargetFramework>
+     <OutputType>Library</OutputType>
+-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
++    <SelfContained>true</SelfContained>
+     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+     <Version>$(Version)</Version>
+   </PropertyGroup>
+ 
+diff --git a/src/Runner.Sdk/Runner.Sdk.csproj b/src/Runner.Sdk/Runner.Sdk.csproj
+index 202e866..510b08e 100644
+--- a/src/Runner.Sdk/Runner.Sdk.csproj
++++ b/src/Runner.Sdk/Runner.Sdk.csproj
+@@ -1,11 +1,12 @@
+ ﻿<Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFramework>net6.0</TargetFramework>
++    <TargetFramework>net8.0</TargetFramework>
+     <OutputType>Library</OutputType>
+-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
++    <SelfContained>true</SelfContained>
+     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+     <Version>$(Version)</Version>
+   </PropertyGroup>
+ 
+@@ -14,9 +15,9 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.4.0" />
+-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
+-    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
++    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
++    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
++    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+   </ItemGroup>
+ 
+   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+diff --git a/src/Runner.Worker/Runner.Worker.csproj b/src/Runner.Worker/Runner.Worker.csproj
+index eee59b8..dca73a3 100644
+--- a/src/Runner.Worker/Runner.Worker.csproj
++++ b/src/Runner.Worker/Runner.Worker.csproj
+@@ -1,11 +1,12 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFramework>net6.0</TargetFramework>
++    <TargetFramework>net8.0</TargetFramework>
+     <OutputType>Exe</OutputType>
+-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
++    <SelfContained>true</SelfContained>
+     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+     <Version>$(Version)</Version>
+     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+@@ -18,9 +19,9 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.4.0" />
+-    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
++    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
++    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
++    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+     <PackageReference Include="YamlDotNet.Signed" Version="5.3.0" />
+   </ItemGroup>
+ 
+diff --git a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
+index 34c97b7..7236765 100644
+--- a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
++++ b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
+@@ -34,6 +34,7 @@ namespace GitHub.Services.Common
+ 
+         public String PropertyName { get; set; }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+diff --git a/src/Sdk/Common/Common/VssException.cs b/src/Sdk/Common/Common/VssException.cs
+index 7cead78..5f8fb8c 100644
+--- a/src/Sdk/Common/Common/VssException.cs
++++ b/src/Sdk/Common/Common/VssException.cs
+@@ -127,6 +127,7 @@ namespace GitHub.Services.Common
+             EventId = (int)info.GetValue("m_eventId", typeof(int));
+         }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+diff --git a/src/Sdk/DTWebApi/WebApi/Exceptions.cs b/src/Sdk/DTWebApi/WebApi/Exceptions.cs
+index 536bf75..ee47f13 100644
+--- a/src/Sdk/DTWebApi/WebApi/Exceptions.cs
++++ b/src/Sdk/DTWebApi/WebApi/Exceptions.cs
+@@ -1539,6 +1539,26 @@ namespace GitHub.DistributedTask.WebApi
+         }
+     }
+ 
++    [Serializable]
++    [ExceptionMapping("0.0", "3.0", "TaskOrchestrationJobUnprocessableException", "GitHub.DistributedTask.WebApi.TaskOrchestrationJobUnprocessableException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
++    public sealed class TaskOrchestrationJobUnprocessableException : DistributedTaskException
++    {
++        public TaskOrchestrationJobUnprocessableException(String message)
++            : base(message)
++        {
++        }
++
++        public TaskOrchestrationJobUnprocessableException(String message, Exception innerException)
++            : base(message, innerException)
++        {
++        }
++
++        private TaskOrchestrationJobUnprocessableException(SerializationInfo info, StreamingContext context)
++            : base(info, context)
++        {
++        }
++    }
++
+     [Serializable]
+     [ExceptionMapping("0.0", "3.0", "TaskOrchestrationPlanSecurityException", "GitHub.DistributedTask.WebApi.TaskOrchestrationPlanSecurityException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+     public sealed class TaskOrchestrationPlanSecurityException : DistributedTaskException
+diff --git a/src/Sdk/RSWebApi/RunServiceHttpClient.cs b/src/Sdk/RSWebApi/RunServiceHttpClient.cs
+index ba176cc..14bdd2a 100644
+--- a/src/Sdk/RSWebApi/RunServiceHttpClient.cs
++++ b/src/Sdk/RSWebApi/RunServiceHttpClient.cs
+@@ -86,6 +86,7 @@ namespace GitHub.Actions.RunService.WebApi
+                 httpMethod,
+                 requestUri: requestUri,
+                 content: requestContent,
++                readErrorBody: true,
+                 cancellationToken: cancellationToken);
+ 
+             if (result.IsSuccess)
+@@ -93,14 +94,35 @@ namespace GitHub.Actions.RunService.WebApi
+                 return result.Value;
+             }
+ 
++            if (TryParseErrorBody(result.ErrorBody, out RunServiceError error))
++            {
++                switch ((HttpStatusCode)error.Code)
++                {
++                    case HttpStatusCode.NotFound:
++                        throw new TaskOrchestrationJobNotFoundException($"Job message not found '{messageId}'. {error.Message}");
++                    case HttpStatusCode.Conflict:
++                        throw new TaskOrchestrationJobAlreadyAcquiredException($"Job message already acquired '{messageId}'. {error.Message}");
++                    case HttpStatusCode.UnprocessableEntity:
++                        throw new TaskOrchestrationJobUnprocessableException($"Unprocessable job '{messageId}'. {error.Message}");
++                }
++            }
++
++            // Temporary back compat
+             switch (result.StatusCode)
+             {
+                 case HttpStatusCode.NotFound:
+                     throw new TaskOrchestrationJobNotFoundException($"Job message not found: {messageId}");
+                 case HttpStatusCode.Conflict:
+                     throw new TaskOrchestrationJobAlreadyAcquiredException($"Job message already acquired: {messageId}");
+-                default:
+-                    throw new Exception($"Failed to get job message: {result.Error}");
++            }
++
++            if (!string.IsNullOrEmpty(result.ErrorBody))
++            {
++                throw new Exception($"Failed to get job message: {result.Error}. {Truncate(result.ErrorBody)}");
++            }
++            else
++            {
++                throw new Exception($"Failed to get job message: {result.Error}");
+             }
+         }
+ 
+@@ -108,7 +130,7 @@ namespace GitHub.Actions.RunService.WebApi
+             Uri requestUri,
+             Guid planId,
+             Guid jobId,
+-            TaskResult result,
++            TaskResult conclusion,
+             Dictionary<String, VariableValue> outputs,
+             IList<StepResult> stepResults,
+             IList<Annotation> jobAnnotations,
+@@ -120,7 +142,7 @@ namespace GitHub.Actions.RunService.WebApi
+             {
+                 PlanID = planId,
+                 JobID = jobId,
+-                Conclusion = result,
++                Conclusion = conclusion,
+                 Outputs = outputs,
+                 StepResults = stepResults,
+                 Annotations = jobAnnotations,
+@@ -130,22 +152,39 @@ namespace GitHub.Actions.RunService.WebApi
+             requestUri = new Uri(requestUri, "completejob");
+ 
+             var requestContent = new ObjectContent<CompleteJobRequest>(payload, new VssJsonMediaTypeFormatter(true));
+-            var response = await SendAsync(
++            var result = await Send2Async(
+                     httpMethod,
+                     requestUri,
+                     content: requestContent,
+                     cancellationToken: cancellationToken);
+-            if (response.IsSuccessStatusCode)
++            if (result.IsSuccess)
+             {
+                 return;
+             }
+ 
+-            switch (response.StatusCode)
++            if (TryParseErrorBody(result.ErrorBody, out RunServiceError error))
++            {
++                switch ((HttpStatusCode)error.Code)
++                {
++                    case HttpStatusCode.NotFound:
++                        throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}. {error.Message}");
++                }
++            }
++
++            // Temporary back compat
++            switch (result.StatusCode)
+             {
+                 case HttpStatusCode.NotFound:
+                     throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}");
+-                default:
+-                    throw new Exception($"Failed to complete job: {response.ReasonPhrase}");
++            }
++
++            if (!string.IsNullOrEmpty(result.ErrorBody))
++            {
++                throw new Exception($"Failed to complete job: {result.Error}. {Truncate(result.ErrorBody)}");
++            }
++            else
++            {
++                throw new Exception($"Failed to complete job: {result.Error}");
+             }
+         }
+ 
+@@ -169,6 +208,7 @@ namespace GitHub.Actions.RunService.WebApi
+                 httpMethod,
+                 requestUri,
+                 content: requestContent,
++                readErrorBody: true,
+                 cancellationToken: cancellationToken);
+ 
+             if (result.IsSuccess)
+@@ -176,12 +216,29 @@ namespace GitHub.Actions.RunService.WebApi
+                 return result.Value;
+             }
+ 
++            if (TryParseErrorBody(result.ErrorBody, out RunServiceError error))
++            {
++                switch ((HttpStatusCode)error.Code)
++                {
++                    case HttpStatusCode.NotFound:
++                        throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}. {error.Message}");
++                }
++            }
++
++            // Temporary back compat
+             switch (result.StatusCode)
+             {
+                 case HttpStatusCode.NotFound:
+                     throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}");
+-                default:
+-                    throw new Exception($"Failed to renew job: {result.Error}");
++            }
++
++            if (!string.IsNullOrEmpty(result.ErrorBody))
++            {
++                throw new Exception($"Failed to renew job: {result.Error}. {Truncate(result.ErrorBody)}");
++            }
++            else
++            {
++                throw new Exception($"Failed to renew job: {result.Error}");
+             }
+         }
+ 
+@@ -190,5 +247,36 @@ namespace GitHub.Actions.RunService.WebApi
+             var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+             return JsonConvert.DeserializeObject<T>(json, s_serializerSettings);
+         }
++
++        private static bool TryParseErrorBody(string errorBody, out RunServiceError error)
++        {
++            if (!string.IsNullOrEmpty(errorBody))
++            {
++                try
++                {
++                    error = JsonUtility.FromString<RunServiceError>(errorBody);
++                    if (error?.Source == "actions-run-service")
++                    {
++                        return true;
++                    }
++                }
++                catch (Exception)
++                {
++                }
++            }
++
++            error = null;
++            return false;
++        }
++
++        private static string Truncate(string errorBody)
++        {
++            if (errorBody.Length > 100)
++            {
++                return errorBody.Substring(0, 100) + "[truncated]";
++            }
++
++            return errorBody;
++        }
+     }
+ }
+diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
+index ff1cb85..dc43855 100644
+--- a/src/Sdk/Sdk.csproj
++++ b/src/Sdk/Sdk.csproj
+@@ -1,11 +1,12 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 
+     <PropertyGroup>
+-        <TargetFramework>net6.0</TargetFramework>
++        <TargetFramework>net8.0</TargetFramework>
+         <OutputType>Library</OutputType>
+-        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
++        <!-- <SelfContained>true</SelfContained> -->
+         <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-        <NoWarn>NU1701;NU1603</NoWarn>
++        <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+         <Version>$(Version)</Version>
+         <DefineConstants>TRACE</DefineConstants>
+         <LangVersion>8.0</LangVersion>
+@@ -14,13 +15,13 @@
+ 
+     <ItemGroup>
+         <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+-        <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
++        <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+-        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
+-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.1" />
+-        <PackageReference Include="System.Security.Cryptography.Cng" Version="4.4.0" />
+-        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
+-        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
++        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
++        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
++        <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
++        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
++        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+         <PackageReference Include="Minimatch" Version="2.0.0" />
+         <PackageReference Include="YamlDotNet.Signed" Version="5.3.0" />
+         <PackageReference Include="System.Net.Http" Version="4.3.4" />
+diff --git a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs b/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
+index 5ebf86f..34ec103 100644
+--- a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
++++ b/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
+@@ -85,6 +85,7 @@ namespace GitHub.Services.OAuth
+             set;
+         }
+ 
++        [Obsolete]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+             base.GetObjectData(info, context);
+diff --git a/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs b/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs
+index de7c3bc..23c5147 100644
+--- a/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs
++++ b/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs
+@@ -101,15 +101,55 @@ namespace Sdk.WebApi.WebApi
+             }
+         }
+ 
++        protected async Task<RawHttpClientResult> Send2Async(
++            HttpMethod method,
++            Uri requestUri,
++            HttpContent content = null,
++            IEnumerable<KeyValuePair<String, String>> queryParameters = null,
++            Object userState = null,
++            CancellationToken cancellationToken = default(CancellationToken))
++        {
++            using (var response = await SendAsync(method, requestUri, content, queryParameters, userState, cancellationToken).ConfigureAwait(false))
++            {
++                if (response.IsSuccessStatusCode)
++                {
++                    return new RawHttpClientResult(
++                        isSuccess: true,
++                        error: string.Empty,
++                        statusCode: response.StatusCode);
++                }
++                else
++                {
++                    var errorBody = default(string);
++                    try
++                    {
++                        errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
++                    }
++                    catch (Exception ex)
++                    {
++                        errorBody = $"Error reading HTTP response body: {ex.Message}";
++                    }
++
++                    string errorMessage = $"Error: {response.ReasonPhrase}";
++                    return new RawHttpClientResult(
++                        isSuccess: false,
++                        error: errorMessage,
++                        statusCode: response.StatusCode,
++                        errorBody: errorBody);
++                }
++            }
++        }
++
+         protected Task<RawHttpClientResult<T>> SendAsync<T>(
+             HttpMethod method,
+             Uri requestUri,
+             HttpContent content = null,
+             IEnumerable<KeyValuePair<String, String>> queryParameters = null,
++            Boolean readErrorBody = false,
+             Object userState = null,
+             CancellationToken cancellationToken = default(CancellationToken))
+         {
+-            return SendAsync<T>(method, null, requestUri, content, queryParameters, userState, cancellationToken);
++            return SendAsync<T>(method, null, requestUri, content, queryParameters, readErrorBody, userState, cancellationToken);
+         }
+ 
+         protected async Task<RawHttpClientResult<T>> SendAsync<T>(
+@@ -118,18 +158,20 @@ namespace Sdk.WebApi.WebApi
+             Uri requestUri,
+             HttpContent content = null,
+             IEnumerable<KeyValuePair<String, String>> queryParameters = null,
++            Boolean readErrorBody = false,
+             Object userState = null,
+             CancellationToken cancellationToken = default(CancellationToken))
+         {
+             using (VssTraceActivity.GetOrCreate().EnterCorrelationScope())
+             using (HttpRequestMessage requestMessage = CreateRequestMessage(method, additionalHeaders, requestUri, content, queryParameters))
+             {
+-                return await SendAsync<T>(requestMessage, userState, cancellationToken).ConfigureAwait(false);
++                return await SendAsync<T>(requestMessage, readErrorBody, userState, cancellationToken).ConfigureAwait(false);
+             }
+         }
+ 
+         protected async Task<RawHttpClientResult<T>> SendAsync<T>(
+             HttpRequestMessage message,
++            Boolean readErrorBody = false,
+             Object userState = null,
+             CancellationToken cancellationToken = default(CancellationToken))
+         {
+@@ -145,8 +187,21 @@ namespace Sdk.WebApi.WebApi
+                 }
+                 else
+                 {
++                    var errorBody = default(string);
++                    if (readErrorBody)
++                    {
++                        try
++                        {
++                            errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
++                        }
++                        catch (Exception ex)
++                        {
++                            errorBody = $"Error reading HTTP response body: {ex.Message}";
++                        }
++                    }
++
+                     string errorMessage = $"Error: {response.ReasonPhrase}";
+-                    return RawHttpClientResult<T>.Fail(errorMessage, response.StatusCode);
++                    return RawHttpClientResult<T>.Fail(errorMessage, response.StatusCode, errorBody);
+                 }
+             }
+         }
+diff --git a/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs b/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs
+index 1b2dc5f..113de87 100644
+--- a/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs
++++ b/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs
+@@ -5,15 +5,27 @@ namespace Sdk.WebApi.WebApi
+     public class RawHttpClientResult
+     {
+         public bool IsSuccess { get; protected set; }
++
++        /// <summary>
++        /// A description of the HTTP status code, like "Error: Unprocessable Entity"
++        /// </summary>
+         public string Error { get; protected set; }
++
++        /// <summary>
++        /// The HTTP response body for unsuccessful HTTP status codes, or an error message when reading the response body fails.
++        /// </summary>
++        public string ErrorBody { get; protected set; }
++
+         public HttpStatusCode StatusCode { get; protected set; }
++
+         public bool IsFailure => !IsSuccess;
+ 
+-        protected RawHttpClientResult(bool isSuccess, string error, HttpStatusCode statusCode)
++        public RawHttpClientResult(bool isSuccess, string error, HttpStatusCode statusCode, string errorBody = null)
+         {
+             IsSuccess = isSuccess;
+             Error = error;
+             StatusCode = statusCode;
++            ErrorBody = errorBody;
+         }
+     }
+ 
+@@ -21,13 +33,13 @@ namespace Sdk.WebApi.WebApi
+     {
+         public T Value { get; private set; }
+ 
+-        protected internal RawHttpClientResult(T value, bool isSuccess, string error, HttpStatusCode statusCode)
+-            : base(isSuccess, error, statusCode)
++        protected internal RawHttpClientResult(T value, bool isSuccess, string error, HttpStatusCode statusCode, string errorBody)
++            : base(isSuccess, error, statusCode, errorBody)
+         {
+             Value = value;
+         }
+ 
+-        public static RawHttpClientResult<T> Fail(string message, HttpStatusCode statusCode) => new RawHttpClientResult<T>(default(T), false, message, statusCode);
+-        public static RawHttpClientResult<T> Ok(T value) => new RawHttpClientResult<T>(value, true, string.Empty, HttpStatusCode.OK);
++        public static RawHttpClientResult<T> Fail(string message, HttpStatusCode statusCode, string errorBody) => new RawHttpClientResult<T>(default(T), false, message, statusCode, errorBody);
++        public static RawHttpClientResult<T> Ok(T value) => new RawHttpClientResult<T>(value, true, string.Empty, HttpStatusCode.OK, null);
+     }
+ }
+diff --git a/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs b/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
+index e4aa84a..8dc275c 100644
+--- a/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
++++ b/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
+@@ -24,6 +24,7 @@ namespace GitHub.Services.WebApi
+             HttpStatusCode = (HttpStatusCode)info.GetInt32("HttpStatusCode");
+         }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+diff --git a/src/Test/L0/ConstantGenerationL0.cs b/src/Test/L0/ConstantGenerationL0.cs
+index f3c1b8f..2a448ad 100644
+--- a/src/Test/L0/ConstantGenerationL0.cs
++++ b/src/Test/L0/ConstantGenerationL0.cs
+@@ -20,6 +20,7 @@ namespace GitHub.Runner.Common.Tests
+                 "linux-x64",
+                 "linux-arm",
+                 "linux-arm64",
++                "linux-ppc64le",
+                 "osx-x64",
+                 "osx-arm64"
+             };
+diff --git a/src/Test/L0/Listener/RunnerL0.cs b/src/Test/L0/Listener/RunnerL0.cs
+index 03f251a..b29f883 100644
+--- a/src/Test/L0/Listener/RunnerL0.cs
++++ b/src/Test/L0/Listener/RunnerL0.cs
+@@ -23,6 +23,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+         private Mock<ITerminal> _term;
+         private Mock<IConfigurationStore> _configStore;
+         private Mock<ISelfUpdater> _updater;
++        private Mock<IErrorThrottler> _acquireJobThrottler;
+ 
+         public RunnerL0()
+         {
+@@ -35,6 +36,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+             _term = new Mock<ITerminal>();
+             _configStore = new Mock<IConfigurationStore>();
+             _updater = new Mock<ISelfUpdater>();
++            _acquireJobThrottler = new Mock<IErrorThrottler>();
+         }
+ 
+         private Pipelines.AgentJobRequestMessage CreateJobRequestMessage(string jobName)
+@@ -67,6 +69,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+                 hc.SetSingleton<IPromptManager>(_promptManager.Object);
+                 hc.SetSingleton<IRunnerServer>(_runnerServer.Object);
+                 hc.SetSingleton<IConfigurationStore>(_configStore.Object);
++                hc.EnqueueInstance<IErrorThrottler>(_acquireJobThrottler.Object);
+                 runner.Initialize(hc);
+                 var settings = new RunnerSettings
+                 {
+@@ -174,6 +177,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+                 hc.SetSingleton<IPromptManager>(_promptManager.Object);
+                 hc.SetSingleton<IMessageListener>(_messageListener.Object);
+                 hc.SetSingleton<IConfigurationStore>(_configStore.Object);
++                hc.EnqueueInstance<IErrorThrottler>(_acquireJobThrottler.Object);
+ 
+                 var command = new CommandSettings(hc, args);
+ 
+@@ -205,6 +209,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+                 hc.SetSingleton<IPromptManager>(_promptManager.Object);
+                 hc.SetSingleton<IMessageListener>(_messageListener.Object);
+                 hc.SetSingleton<IConfigurationStore>(_configStore.Object);
++                hc.EnqueueInstance<IErrorThrottler>(_acquireJobThrottler.Object);
+ 
+                 var command = new CommandSettings(hc, new[] { "run" });
+ 
+@@ -242,6 +247,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+                 hc.SetSingleton<IPromptManager>(_promptManager.Object);
+                 hc.SetSingleton<IRunnerServer>(_runnerServer.Object);
+                 hc.SetSingleton<IConfigurationStore>(_configStore.Object);
++                hc.EnqueueInstance<IErrorThrottler>(_acquireJobThrottler.Object);
+                 runner.Initialize(hc);
+                 var settings = new RunnerSettings
+                 {
+@@ -338,6 +344,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+                 hc.SetSingleton<IPromptManager>(_promptManager.Object);
+                 hc.SetSingleton<IRunnerServer>(_runnerServer.Object);
+                 hc.SetSingleton<IConfigurationStore>(_configStore.Object);
++                hc.EnqueueInstance<IErrorThrottler>(_acquireJobThrottler.Object);
+                 runner.Initialize(hc);
+                 var settings = new RunnerSettings
+                 {
+@@ -439,6 +446,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+                 hc.SetSingleton<IRunnerServer>(_runnerServer.Object);
+                 hc.SetSingleton<IConfigurationStore>(_configStore.Object);
+                 hc.SetSingleton<ISelfUpdater>(_updater.Object);
++                hc.EnqueueInstance<IErrorThrottler>(_acquireJobThrottler.Object);
+ 
+                 runner.Initialize(hc);
+                 var settings = new RunnerSettings
+@@ -522,6 +530,7 @@ namespace GitHub.Runner.Common.Tests.Listener
+                 hc.SetSingleton<IConfigurationManager>(_configurationManager.Object);
+                 hc.SetSingleton<IConfigurationStore>(_configStore.Object);
+                 hc.SetSingleton<IPromptManager>(_promptManager.Object);
++                hc.EnqueueInstance<IErrorThrottler>(_acquireJobThrottler.Object);
+ 
+                 var command = new CommandSettings(hc, new[] { "remove", "--local" });
+ 
+diff --git a/src/Test/L0/Listener/SelfUpdaterL0.cs b/src/Test/L0/Listener/SelfUpdaterL0.cs
+index 26ba65e..b4a0f3f 100644
+--- a/src/Test/L0/Listener/SelfUpdaterL0.cs
++++ b/src/Test/L0/Listener/SelfUpdaterL0.cs
+@@ -1,4 +1,4 @@
+-﻿#if !(OS_WINDOWS && ARM64)
++﻿#if !(OS_WINDOWS && ARM64) && !PPC64LE
+ using System;
+ using System.Collections.Generic;
+ using System.IO;
+@@ -16,6 +16,7 @@ using Xunit;
+ 
+ namespace GitHub.Runner.Common.Tests.Listener
+ {
++    #if !S390X // Self-update is not currently supported on PPC64LE
+     public sealed class SelfUpdaterL0
+     {
+         private Mock<IRunnerServer> _runnerServer;
+@@ -291,5 +292,6 @@ namespace GitHub.Runner.Common.Tests.Listener
+             }
+         }
+     }
++    #endif
+ }
+ #endif
+diff --git a/src/Test/L0/Listener/SelfUpdaterV2L0.cs b/src/Test/L0/Listener/SelfUpdaterV2L0.cs
+index 5115a6b..6ebc7a9 100644
+--- a/src/Test/L0/Listener/SelfUpdaterV2L0.cs
++++ b/src/Test/L0/Listener/SelfUpdaterV2L0.cs
+@@ -1,4 +1,4 @@
+-﻿#if !(OS_WINDOWS && ARM64)
++﻿#if !(OS_WINDOWS && ARM64) && !PPC64LE
+ using System;
+ using System.Collections.Generic;
+ using System.IO;
+diff --git a/src/Test/L0/TestHostContext.cs b/src/Test/L0/TestHostContext.cs
+index a3e484b..c44f13f 100644
+--- a/src/Test/L0/TestHostContext.cs
++++ b/src/Test/L0/TestHostContext.cs
+@@ -30,9 +30,11 @@ namespace GitHub.Runner.Common.Tests
+         private string _tempDirectoryRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("D"));
+         private StartupType _startupType;
+         public event EventHandler Unloading;
++        public event EventHandler<DelayEventArgs> Delaying;
+         public CancellationToken RunnerShutdownToken => _runnerShutdownTokenSource.Token;
+         public ShutdownReason RunnerShutdownReason { get; private set; }
+         public ISecretMasker SecretMasker => _secretMasker;
++
+         public TestHostContext(object testClass, [CallerMemberName] string testName = "")
+         {
+             ArgUtil.NotNull(testClass, nameof(testClass));
+@@ -92,6 +94,14 @@ namespace GitHub.Runner.Common.Tests
+ 
+         public async Task Delay(TimeSpan delay, CancellationToken token)
+         {
++            // Event callback
++            EventHandler<DelayEventArgs> handler = Delaying;
++            if (handler != null)
++            {
++                handler(this, new DelayEventArgs(delay, token));
++            }
++
++            // Delay zero
+             await Task.Delay(TimeSpan.Zero);
+         }
+ 
+@@ -361,4 +371,19 @@ namespace GitHub.Runner.Common.Tests
+             }
+         }
+     }
++
++    public class DelayEventArgs : EventArgs
++    {
++        public DelayEventArgs(
++            TimeSpan delay,
++            CancellationToken token)
++        {
++            Delay = delay;
++            Token = token;
++        }
++
++        public TimeSpan Delay { get; }
++
++        public CancellationToken Token { get; }
++    }
+ }
+diff --git a/src/Test/L0/Worker/StepHostL0.cs b/src/Test/L0/Worker/StepHostL0.cs
+index f6b5889..42237fc 100644
+--- a/src/Test/L0/Worker/StepHostL0.cs
++++ b/src/Test/L0/Worker/StepHostL0.cs
+@@ -31,7 +31,7 @@ namespace GitHub.Runner.Common.Tests.Worker
+             return hc;
+         }
+ 
+-#if OS_LINUX
++#if OS_LINUX && !PPC64LE
+         [Fact]
+         [Trait("Level", "L0")]
+         [Trait("Category", "Worker")]
+diff --git a/src/Test/Test.csproj b/src/Test/Test.csproj
+index 1beddbf..e7dabf5 100644
+--- a/src/Test/Test.csproj
++++ b/src/Test/Test.csproj
+@@ -1,9 +1,9 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+     <PropertyGroup>
+-        <TargetFramework>net6.0</TargetFramework>
+-        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
++        <TargetFramework>net8.0</TargetFramework>
++        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
+         <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+-        <NoWarn>NU1701;NU1603;NU1603;xUnit2013;</NoWarn>
++        <NoWarn>NU1701;NU1603;NU1603;xUnit2013;SYSLIB0050;SYSLIB0051</NoWarn>
+     </PropertyGroup>
+ 
+     <ItemGroup>
+@@ -15,13 +15,13 @@
+     </ItemGroup>
+ 
+     <ItemGroup>
+-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
++        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+         <PackageReference Include="xunit" Version="2.7.1" />
+-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
++        <PackageReference Include="xunit.runner.visualstudio" Version="2.5.8" />
+         <PackageReference Include="System.Buffers" Version="4.5.1" />
+-        <PackageReference Include="System.Reflection.TypeExtensions" Version="4.4.0" />
++        <PackageReference Include="System.Reflection.TypeExtensions" Version="4.7.0" />
+         <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
+-        <PackageReference Include="Moq" Version="4.11.0" />
++        <PackageReference Include="Moq" Version="4.20.70" />
+     </ItemGroup>
+ 
+     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+diff --git a/src/dev.sh b/src/dev.sh
+index 0fc5876..5898593 100755
+--- a/src/dev.sh
++++ b/src/dev.sh
+@@ -17,7 +17,7 @@ LAYOUT_DIR="$SCRIPT_DIR/../_layout"
+ DOWNLOAD_DIR="$SCRIPT_DIR/../_downloads/netcore2x"
+ PACKAGE_DIR="$SCRIPT_DIR/../_package"
+ DOTNETSDK_ROOT="$SCRIPT_DIR/../_dotnetsdk"
+-DOTNETSDK_VERSION="6.0.421"
++DOTNETSDK_VERSION="8.0.105"
+ DOTNETSDK_INSTALLDIR="$DOTNETSDK_ROOT/$DOTNETSDK_VERSION"
+ RUNNER_VERSION=$(cat runnerversion)
+ 
+@@ -54,6 +54,7 @@ elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
+         case $CPU_NAME in
+             armv7l) RUNTIME_ID="linux-arm";;
+             aarch64) RUNTIME_ID="linux-arm64";;
++            ppc64le) RUNTIME_ID="linux-ppc64le";;
+         esac
+     fi
+ elif [[ "$CURRENT_PLATFORM" == 'darwin' ]]; then
+@@ -80,7 +81,7 @@ if [[ "$CURRENT_PLATFORM" == 'windows' ]]; then
+         exit 1
+     fi
+ elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
+-    if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-x86') && ("$RUNTIME_ID" != 'linux-arm64') && ("$RUNTIME_ID" != 'linux-arm') ]]; then
++    if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-x86') && ("$RUNTIME_ID" != 'linux-arm64') && ("$RUNTIME_ID" != 'linux-arm')  && ("$RUNTIME_ID" != 'linux-ppc64le') ]]; then
+        echo "Failed: Can't build $RUNTIME_ID package $CURRENT_PLATFORM" >&2
+        exit 1
+     fi
+@@ -199,7 +200,7 @@ function package ()
+     popd > /dev/null
+ }
+ 
+-if [[ (! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}") || (! -e "${DOTNETSDK_INSTALLDIR}/dotnet") ]]; then
++if [[ "${RUNTIME_ID}" != "linux-ppc64le" && ((! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}") || (! -e "${DOTNETSDK_INSTALLDIR}/dotnet")) ]]; then
+ 
+     # Download dotnet SDK to ../_dotnetsdk directory
+     heading "Ensure Dotnet SDK"
+@@ -224,8 +225,10 @@ if [[ (! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTN
+     echo "${DOTNETSDK_VERSION}" > "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}"
+ fi
+ 
+-echo "Prepend ${DOTNETSDK_INSTALLDIR} to %PATH%"
+-export PATH=${DOTNETSDK_INSTALLDIR}:$PATH
++if [[ -d "${DOTNETSDK_INSTALLDIR}" ]]; then
++    echo "Prepend ${DOTNETSDK_INSTALLDIR} to %PATH%"
++    export PATH=${DOTNETSDK_INSTALLDIR}:$PATH
++fi
+ 
+ heading "Dotnet SDK Version"
+ dotnet --version
+diff --git a/src/dir.proj b/src/dir.proj
+index 056a312..3fac602 100644
+--- a/src/dir.proj
++++ b/src/dir.proj
+@@ -41,8 +41,18 @@
+     </ItemGroup>
+ 
+     <Target Name="Build" DependsOnTargets="GenerateConstant">
+-        <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" />
+-        <MSBuild Targets="Publish" Projects="@(ProjectFiles)" BuildInParallel="false" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);Version=$(RunnerVersion);RuntimeIdentifier=$(PackageRuntime);PublishDir=$(MSBuildProjectDirectory)/../_layout/bin" />
++        <PropertyGroup>
++            <!-- Normally we want to publish a self-contained app for $(PackageRuntime) -->
++            <PublishRuntimeIdentifier>RuntimeIdentifier=$(PackageRuntime)</PublishRuntimeIdentifier>
++            <!-- However, on s390x there are no apphost or runtime packages on nuget.org, so self-contained publishing is not supported.
++                 Perform a non-self-contained publish using the current runtime identifier (normally something like rhel.8-s390x) instead.
++                 In addition, when not using an explicit runtime identifier, the SDK will copy runtime assets from dependent packages;
++                 as this would confuse the expected layout, disable that behavior as well.  -->
++            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier>
++        </PropertyGroup>
++
++        <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" Properties="$(PublishRuntimeIdentifier)" />
++        <MSBuild Targets="Publish" Projects="@(ProjectFiles)" BuildInParallel="false" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);Version=$(RunnerVersion);$(PublishRuntimeIdentifier);PublishDir=$(MSBuildProjectDirectory)/../_layout/bin" />
+         <Exec Command="%22$(DesktopMSBuild)%22 Runner.Service/Windows/RunnerService.csproj /p:Configuration=$(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:OutputPath=%22$(MSBuildProjectDirectory)/../_layout/bin%22" ConsoleToMSBuild="true" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86' Or '$(PackageRuntime)' == 'win-arm64'" />
+     </Target>
+ 
+diff --git a/src/global.json b/src/global.json
+index e7028fe..f09cb3e 100644
+--- a/src/global.json
++++ b/src/global.json
+@@ -1,5 +1,5 @@
+ {
+   "sdk": {
+-    "version": "6.0.421"
++    "version": "8.0.105"
+   }
+ }
