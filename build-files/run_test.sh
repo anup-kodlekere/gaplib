@@ -45,7 +45,7 @@ install_runner() {
 
 cleanup() {
     rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-${ARCH}-s8.patch \
-           /tmp/runner /tmp/preseed-yaml
+           /tmp/runner /tmp/preseed-yaml /opt/runner
 }
 
 run() {
