@@ -10,6 +10,7 @@ patch_runner() {
 }
 
 build_runner() {
+    export DOTNET_NUGET_SIGNATURE_VERIFICATION=false
     echo "Building runner binary"
     cd src
 
