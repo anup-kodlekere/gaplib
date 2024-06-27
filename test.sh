@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 export SOURCE=$(readlink -f ${BASH_SOURCE[0]})
 export SRCDIR=$(dirname ${SOURCE})
 export ARCH=`uname -m`

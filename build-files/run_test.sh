@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 patch_runner() {
     echo "Patching runner"
     cd /tmp
