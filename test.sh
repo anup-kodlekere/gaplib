@@ -13,9 +13,9 @@ if [ ! -d "${BUILD_PREREQS_PATH}" ]; then
     echo "Check the BUILD_PREREQS_PATH specification" >&2
     return 3
 fi
-local PATCH_FILE="${PATCH_FILE:-runner-${ARCH}-s8.patch}"
+export PATCH_FILE="${PATCH_FILE:-runner-${ARCH}-s8.patch}"
 
-local BUILD_CONTAINER
+export BUILD_CONTAINER
 BUILD_CONTAINER="gha-dotnet8-test"
 export BUILD_HOME="/home/ubuntu"
 
