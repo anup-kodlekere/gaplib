@@ -254,6 +254,251 @@ index eee59b8..05e8ad6 100644
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
      <NoWarn>NU1701;NU1603</NoWarn>
      <Version>$(Version)</Version>
+diff --git a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
+index 34c97b7..7236765 100644
+--- a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
++++ b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
+@@ -34,6 +34,7 @@ namespace GitHub.Services.Common
+ 
+         public String PropertyName { get; set; }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+diff --git a/src/Sdk/Common/Common/VssException.cs b/src/Sdk/Common/Common/VssException.cs
+index 7cead78..5f8fb8c 100644
+--- a/src/Sdk/Common/Common/VssException.cs
++++ b/src/Sdk/Common/Common/VssException.cs
+@@ -127,6 +127,7 @@ namespace GitHub.Services.Common
+             EventId = (int)info.GetValue("m_eventId", typeof(int));
+         }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+diff --git a/src/Sdk/DTWebApi/WebApi/Exceptions.cs b/src/Sdk/DTWebApi/WebApi/Exceptions.cs
+index 536bf75..ee47f13 100644
+--- a/src/Sdk/DTWebApi/WebApi/Exceptions.cs
++++ b/src/Sdk/DTWebApi/WebApi/Exceptions.cs
+@@ -1539,6 +1539,26 @@ namespace GitHub.DistributedTask.WebApi
+         }
+     }
+ 
++    [Serializable]
++    [ExceptionMapping("0.0", "3.0", "TaskOrchestrationJobUnprocessableException", "GitHub.DistributedTask.WebApi.TaskOrchestrationJobUnprocessableException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
++    public sealed class TaskOrchestrationJobUnprocessableException : DistributedTaskException
++    {
++        public TaskOrchestrationJobUnprocessableException(String message)
++            : base(message)
++        {
++        }
++
++        public TaskOrchestrationJobUnprocessableException(String message, Exception innerException)
++            : base(message, innerException)
++        {
++        }
++
++        private TaskOrchestrationJobUnprocessableException(SerializationInfo info, StreamingContext context)
++            : base(info, context)
++        {
++        }
++    }
++
+     [Serializable]
+     [ExceptionMapping("0.0", "3.0", "TaskOrchestrationPlanSecurityException", "GitHub.DistributedTask.WebApi.TaskOrchestrationPlanSecurityException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+     public sealed class TaskOrchestrationPlanSecurityException : DistributedTaskException
+diff --git a/src/Sdk/RSWebApi/RunServiceHttpClient.cs b/src/Sdk/RSWebApi/RunServiceHttpClient.cs
+index ba176cc..14bdd2a 100644
+--- a/src/Sdk/RSWebApi/RunServiceHttpClient.cs
++++ b/src/Sdk/RSWebApi/RunServiceHttpClient.cs
+@@ -86,6 +86,7 @@ namespace GitHub.Actions.RunService.WebApi
+                 httpMethod,
+                 requestUri: requestUri,
+                 content: requestContent,
++                readErrorBody: true,
+                 cancellationToken: cancellationToken);
+ 
+             if (result.IsSuccess)
+@@ -93,14 +94,35 @@ namespace GitHub.Actions.RunService.WebApi
+                 return result.Value;
+             }
+ 
++            if (TryParseErrorBody(result.ErrorBody, out RunServiceError error))
++            {
++                switch ((HttpStatusCode)error.Code)
++                {
++                    case HttpStatusCode.NotFound:
++                        throw new TaskOrchestrationJobNotFoundException($"Job message not found '{messageId}'. {error.Message}");
++                    case HttpStatusCode.Conflict:
++                        throw new TaskOrchestrationJobAlreadyAcquiredException($"Job message already acquired '{messageId}'. {error.Message}");
++                    case HttpStatusCode.UnprocessableEntity:
++                        throw new TaskOrchestrationJobUnprocessableException($"Unprocessable job '{messageId}'. {error.Message}");
++                }
++            }
++
++            // Temporary back compat
+             switch (result.StatusCode)
+             {
+                 case HttpStatusCode.NotFound:
+                     throw new TaskOrchestrationJobNotFoundException($"Job message not found: {messageId}");
+                 case HttpStatusCode.Conflict:
+                     throw new TaskOrchestrationJobAlreadyAcquiredException($"Job message already acquired: {messageId}");
+-                default:
+-                    throw new Exception($"Failed to get job message: {result.Error}");
++            }
++
++            if (!string.IsNullOrEmpty(result.ErrorBody))
++            {
++                throw new Exception($"Failed to get job message: {result.Error}. {Truncate(result.ErrorBody)}");
++            }
++            else
++            {
++                throw new Exception($"Failed to get job message: {result.Error}");
+             }
+         }
+ 
+@@ -108,7 +130,7 @@ namespace GitHub.Actions.RunService.WebApi
+             Uri requestUri,
+             Guid planId,
+             Guid jobId,
+-            TaskResult result,
++            TaskResult conclusion,
+             Dictionary<String, VariableValue> outputs,
+             IList<StepResult> stepResults,
+             IList<Annotation> jobAnnotations,
+@@ -120,7 +142,7 @@ namespace GitHub.Actions.RunService.WebApi
+             {
+                 PlanID = planId,
+                 JobID = jobId,
+-                Conclusion = result,
++                Conclusion = conclusion,
+                 Outputs = outputs,
+                 StepResults = stepResults,
+                 Annotations = jobAnnotations,
+@@ -130,22 +152,39 @@ namespace GitHub.Actions.RunService.WebApi
+             requestUri = new Uri(requestUri, "completejob");
+ 
+             var requestContent = new ObjectContent<CompleteJobRequest>(payload, new VssJsonMediaTypeFormatter(true));
+-            var response = await SendAsync(
++            var result = await Send2Async(
+                     httpMethod,
+                     requestUri,
+                     content: requestContent,
+                     cancellationToken: cancellationToken);
+-            if (response.IsSuccessStatusCode)
++            if (result.IsSuccess)
+             {
+                 return;
+             }
+ 
+-            switch (response.StatusCode)
++            if (TryParseErrorBody(result.ErrorBody, out RunServiceError error))
++            {
++                switch ((HttpStatusCode)error.Code)
++                {
++                    case HttpStatusCode.NotFound:
++                        throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}. {error.Message}");
++                }
++            }
++
++            // Temporary back compat
++            switch (result.StatusCode)
+             {
+                 case HttpStatusCode.NotFound:
+                     throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}");
+-                default:
+-                    throw new Exception($"Failed to complete job: {response.ReasonPhrase}");
++            }
++
++            if (!string.IsNullOrEmpty(result.ErrorBody))
++            {
++                throw new Exception($"Failed to complete job: {result.Error}. {Truncate(result.ErrorBody)}");
++            }
++            else
++            {
++                throw new Exception($"Failed to complete job: {result.Error}");
+             }
+         }
+ 
+@@ -169,6 +208,7 @@ namespace GitHub.Actions.RunService.WebApi
+                 httpMethod,
+                 requestUri,
+                 content: requestContent,
++                readErrorBody: true,
+                 cancellationToken: cancellationToken);
+ 
+             if (result.IsSuccess)
+@@ -176,12 +216,29 @@ namespace GitHub.Actions.RunService.WebApi
+                 return result.Value;
+             }
+ 
++            if (TryParseErrorBody(result.ErrorBody, out RunServiceError error))
++            {
++                switch ((HttpStatusCode)error.Code)
++                {
++                    case HttpStatusCode.NotFound:
++                        throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}. {error.Message}");
++                }
++            }
++
++            // Temporary back compat
+             switch (result.StatusCode)
+             {
+                 case HttpStatusCode.NotFound:
+                     throw new TaskOrchestrationJobNotFoundException($"Job not found: {jobId}");
+-                default:
+-                    throw new Exception($"Failed to renew job: {result.Error}");
++            }
++
++            if (!string.IsNullOrEmpty(result.ErrorBody))
++            {
++                throw new Exception($"Failed to renew job: {result.Error}. {Truncate(result.ErrorBody)}");
++            }
++            else
++            {
++                throw new Exception($"Failed to renew job: {result.Error}");
+             }
+         }
+ 
+@@ -190,5 +247,36 @@ namespace GitHub.Actions.RunService.WebApi
+             var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+             return JsonConvert.DeserializeObject<T>(json, s_serializerSettings);
+         }
++
++        private static bool TryParseErrorBody(string errorBody, out RunServiceError error)
++        {
++            if (!string.IsNullOrEmpty(errorBody))
++            {
++                try
++                {
++                    error = JsonUtility.FromString<RunServiceError>(errorBody);
++                    if (error?.Source == "actions-run-service")
++                    {
++                        return true;
++                    }
++                }
++                catch (Exception)
++                {
++                }
++            }
++
++            error = null;
++            return false;
++        }
++
++        private static string Truncate(string errorBody)
++        {
++            if (errorBody.Length > 100)
++            {
++                return errorBody.Substring(0, 100) + "[truncated]";
++            }
++
++            return errorBody;
++        }
+     }
+ }
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
 index ff1cb85..8970eca 100644
 --- a/src/Sdk/Sdk.csproj
@@ -280,6 +525,187 @@ index ff1cb85..8970eca 100644
          <PackageReference Include="System.Security.Cryptography.Cng" Version="4.4.0" />
          <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
          <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+diff --git a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs b/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
+index 5ebf86f..34ec103 100644
+--- a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
++++ b/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
+@@ -85,6 +85,7 @@ namespace GitHub.Services.OAuth
+             set;
+         }
+ 
++        [Obsolete]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+             base.GetObjectData(info, context);
+diff --git a/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs b/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs
+index de7c3bc..23c5147 100644
+--- a/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs
++++ b/src/Sdk/WebApi/WebApi/RawHttpClientBase.cs
+@@ -101,15 +101,55 @@ namespace Sdk.WebApi.WebApi
+             }
+         }
+ 
++        protected async Task<RawHttpClientResult> Send2Async(
++            HttpMethod method,
++            Uri requestUri,
++            HttpContent content = null,
++            IEnumerable<KeyValuePair<String, String>> queryParameters = null,
++            Object userState = null,
++            CancellationToken cancellationToken = default(CancellationToken))
++        {
++            using (var response = await SendAsync(method, requestUri, content, queryParameters, userState, cancellationToken).ConfigureAwait(false))
++            {
++                if (response.IsSuccessStatusCode)
++                {
++                    return new RawHttpClientResult(
++                        isSuccess: true,
++                        error: string.Empty,
++                        statusCode: response.StatusCode);
++                }
++                else
++                {
++                    var errorBody = default(string);
++                    try
++                    {
++                        errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
++                    }
++                    catch (Exception ex)
++                    {
++                        errorBody = $"Error reading HTTP response body: {ex.Message}";
++                    }
++
++                    string errorMessage = $"Error: {response.ReasonPhrase}";
++                    return new RawHttpClientResult(
++                        isSuccess: false,
++                        error: errorMessage,
++                        statusCode: response.StatusCode,
++                        errorBody: errorBody);
++                }
++            }
++        }
++
+         protected Task<RawHttpClientResult<T>> SendAsync<T>(
+             HttpMethod method,
+             Uri requestUri,
+             HttpContent content = null,
+             IEnumerable<KeyValuePair<String, String>> queryParameters = null,
++            Boolean readErrorBody = false,
+             Object userState = null,
+             CancellationToken cancellationToken = default(CancellationToken))
+         {
+-            return SendAsync<T>(method, null, requestUri, content, queryParameters, userState, cancellationToken);
++            return SendAsync<T>(method, null, requestUri, content, queryParameters, readErrorBody, userState, cancellationToken);
+         }
+ 
+         protected async Task<RawHttpClientResult<T>> SendAsync<T>(
+@@ -118,18 +158,20 @@ namespace Sdk.WebApi.WebApi
+             Uri requestUri,
+             HttpContent content = null,
+             IEnumerable<KeyValuePair<String, String>> queryParameters = null,
++            Boolean readErrorBody = false,
+             Object userState = null,
+             CancellationToken cancellationToken = default(CancellationToken))
+         {
+             using (VssTraceActivity.GetOrCreate().EnterCorrelationScope())
+             using (HttpRequestMessage requestMessage = CreateRequestMessage(method, additionalHeaders, requestUri, content, queryParameters))
+             {
+-                return await SendAsync<T>(requestMessage, userState, cancellationToken).ConfigureAwait(false);
++                return await SendAsync<T>(requestMessage, readErrorBody, userState, cancellationToken).ConfigureAwait(false);
+             }
+         }
+ 
+         protected async Task<RawHttpClientResult<T>> SendAsync<T>(
+             HttpRequestMessage message,
++            Boolean readErrorBody = false,
+             Object userState = null,
+             CancellationToken cancellationToken = default(CancellationToken))
+         {
+@@ -145,8 +187,21 @@ namespace Sdk.WebApi.WebApi
+                 }
+                 else
+                 {
++                    var errorBody = default(string);
++                    if (readErrorBody)
++                    {
++                        try
++                        {
++                            errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
++                        }
++                        catch (Exception ex)
++                        {
++                            errorBody = $"Error reading HTTP response body: {ex.Message}";
++                        }
++                    }
++
+                     string errorMessage = $"Error: {response.ReasonPhrase}";
+-                    return RawHttpClientResult<T>.Fail(errorMessage, response.StatusCode);
++                    return RawHttpClientResult<T>.Fail(errorMessage, response.StatusCode, errorBody);
+                 }
+             }
+         }
+diff --git a/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs b/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs
+index 1b2dc5f..113de87 100644
+--- a/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs
++++ b/src/Sdk/WebApi/WebApi/RawHttpClientResult.cs
+@@ -5,15 +5,27 @@ namespace Sdk.WebApi.WebApi
+     public class RawHttpClientResult
+     {
+         public bool IsSuccess { get; protected set; }
++
++        /// <summary>
++        /// A description of the HTTP status code, like "Error: Unprocessable Entity"
++        /// </summary>
+         public string Error { get; protected set; }
++
++        /// <summary>
++        /// The HTTP response body for unsuccessful HTTP status codes, or an error message when reading the response body fails.
++        /// </summary>
++        public string ErrorBody { get; protected set; }
++
+         public HttpStatusCode StatusCode { get; protected set; }
++
+         public bool IsFailure => !IsSuccess;
+ 
+-        protected RawHttpClientResult(bool isSuccess, string error, HttpStatusCode statusCode)
++        public RawHttpClientResult(bool isSuccess, string error, HttpStatusCode statusCode, string errorBody = null)
+         {
+             IsSuccess = isSuccess;
+             Error = error;
+             StatusCode = statusCode;
++            ErrorBody = errorBody;
+         }
+     }
+ 
+@@ -21,13 +33,13 @@ namespace Sdk.WebApi.WebApi
+     {
+         public T Value { get; private set; }
+ 
+-        protected internal RawHttpClientResult(T value, bool isSuccess, string error, HttpStatusCode statusCode)
+-            : base(isSuccess, error, statusCode)
++        protected internal RawHttpClientResult(T value, bool isSuccess, string error, HttpStatusCode statusCode, string errorBody)
++            : base(isSuccess, error, statusCode, errorBody)
+         {
+             Value = value;
+         }
+ 
+-        public static RawHttpClientResult<T> Fail(string message, HttpStatusCode statusCode) => new RawHttpClientResult<T>(default(T), false, message, statusCode);
+-        public static RawHttpClientResult<T> Ok(T value) => new RawHttpClientResult<T>(value, true, string.Empty, HttpStatusCode.OK);
++        public static RawHttpClientResult<T> Fail(string message, HttpStatusCode statusCode, string errorBody) => new RawHttpClientResult<T>(default(T), false, message, statusCode, errorBody);
++        public static RawHttpClientResult<T> Ok(T value) => new RawHttpClientResult<T>(value, true, string.Empty, HttpStatusCode.OK, null);
+     }
+ }
+diff --git a/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs b/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
+index e4aa84a..8dc275c 100644
+--- a/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
++++ b/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
+@@ -24,6 +24,7 @@ namespace GitHub.Services.WebApi
+             HttpStatusCode = (HttpStatusCode)info.GetInt32("HttpStatusCode");
+         }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
 diff --git a/src/Test/L0/ConstantGenerationL0.cs b/src/Test/L0/ConstantGenerationL0.cs
 index f3c1b8f..2a448ad 100644
 --- a/src/Test/L0/ConstantGenerationL0.cs
