@@ -125,10 +125,10 @@ index 9378104..7469ca0 100644
              public static readonly Architecture PlatformArchitecture = Architecture.X64;
  #endif
 diff --git a/src/Runner.Common/Runner.Common.csproj b/src/Runner.Common/Runner.Common.csproj
-index 329a024..0b0acfe 100644
+index 329a024..1a8a0d1 100644
 --- a/src/Runner.Common/Runner.Common.csproj
 +++ b/src/Runner.Common/Runner.Common.csproj
-@@ -1,9 +1,9 @@
+@@ -1,11 +1,11 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -138,8 +138,11 @@ index 329a024..0b0acfe 100644
 -    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
 +    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
+   </PropertyGroup>
+ 
 diff --git a/src/Runner.Common/Util/VarUtil.cs b/src/Runner.Common/Util/VarUtil.cs
 index 97273a1..c577871 100644
 --- a/src/Runner.Common/Util/VarUtil.cs
@@ -170,10 +173,10 @@ index 15291be..a404a67 100644
 +#pragma warning restore CA1416
  #endif
 diff --git a/src/Runner.Listener/Runner.Listener.csproj b/src/Runner.Listener/Runner.Listener.csproj
-index 3cd72ec..ef39c3f 100644
+index 3cd72ec..8034a73 100644
 --- a/src/Runner.Listener/Runner.Listener.csproj
 +++ b/src/Runner.Listener/Runner.Listener.csproj
-@@ -1,9 +1,10 @@
+@@ -1,11 +1,12 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -184,13 +187,16 @@ index 3cd72ec..ef39c3f 100644
 +    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
 +    <SelfContained>true</SelfContained>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
+     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
 diff --git a/src/Runner.PluginHost/Runner.PluginHost.csproj b/src/Runner.PluginHost/Runner.PluginHost.csproj
-index df30f34..b19fd40 100644
+index df30f34..7c3d3c6 100644
 --- a/src/Runner.PluginHost/Runner.PluginHost.csproj
 +++ b/src/Runner.PluginHost/Runner.PluginHost.csproj
-@@ -1,9 +1,10 @@
+@@ -1,11 +1,12 @@
  ﻿<Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -201,13 +207,16 @@ index df30f34..b19fd40 100644
 +    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
 +    <SelfContained>true</SelfContained>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
+     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
 diff --git a/src/Runner.Plugins/Runner.Plugins.csproj b/src/Runner.Plugins/Runner.Plugins.csproj
-index 39245a3..5f8dba7 100644
+index 39245a3..d365000 100644
 --- a/src/Runner.Plugins/Runner.Plugins.csproj
 +++ b/src/Runner.Plugins/Runner.Plugins.csproj
-@@ -1,9 +1,10 @@
+@@ -1,11 +1,12 @@
  ﻿<Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -218,13 +227,16 @@ index 39245a3..5f8dba7 100644
 +    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
 +    <SelfContained>true</SelfContained>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
+   </PropertyGroup>
+ 
 diff --git a/src/Runner.Sdk/Runner.Sdk.csproj b/src/Runner.Sdk/Runner.Sdk.csproj
-index 202e866..89a516f 100644
+index 202e866..feae1e8 100644
 --- a/src/Runner.Sdk/Runner.Sdk.csproj
 +++ b/src/Runner.Sdk/Runner.Sdk.csproj
-@@ -1,9 +1,10 @@
+@@ -1,11 +1,12 @@
  ﻿<Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -235,13 +247,16 @@ index 202e866..89a516f 100644
 +    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
 +    <SelfContained>true</SelfContained>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
+   </PropertyGroup>
+ 
 diff --git a/src/Runner.Worker/Runner.Worker.csproj b/src/Runner.Worker/Runner.Worker.csproj
-index eee59b8..05e8ad6 100644
+index eee59b8..f28955f 100644
 --- a/src/Runner.Worker/Runner.Worker.csproj
 +++ b/src/Runner.Worker/Runner.Worker.csproj
-@@ -1,9 +1,10 @@
+@@ -1,11 +1,12 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -252,8 +267,11 @@ index eee59b8..05e8ad6 100644
 +    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
 +    <SelfContained>true</SelfContained>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
+     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
 diff --git a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
 index 34c97b7..7236765 100644
 --- a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
