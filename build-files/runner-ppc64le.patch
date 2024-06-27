@@ -1,5 +1,5 @@
 diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
-index 032387b..0e0d25a 100644
+index 032387b..ccc59c4 100644
 --- a/.devcontainer/devcontainer.json
 +++ b/.devcontainer/devcontainer.json
 @@ -4,7 +4,7 @@
@@ -7,7 +7,7 @@ index 032387b..0e0d25a 100644
      "ghcr.io/devcontainers/features/docker-in-docker:1": {},
      "ghcr.io/devcontainers/features/dotnet": {
 -      "version": "6.0.421"
-+      "version": "8.0.104"
++      "version": "8.0.105"
      },
      "ghcr.io/devcontainers/features/node:1": {
        "version": "16"
@@ -702,7 +702,7 @@ index 1beddbf..406b8d8 100644
  
      <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/dev.sh b/src/dev.sh
-index 0fc5876..e2ba92b 100755
+index 0fc5876..5898593 100755
 --- a/src/dev.sh
 +++ b/src/dev.sh
 @@ -17,7 +17,7 @@ LAYOUT_DIR="$SCRIPT_DIR/../_layout"
@@ -710,7 +710,7 @@ index 0fc5876..e2ba92b 100755
  PACKAGE_DIR="$SCRIPT_DIR/../_package"
  DOTNETSDK_ROOT="$SCRIPT_DIR/../_dotnetsdk"
 -DOTNETSDK_VERSION="6.0.421"
-+DOTNETSDK_VERSION="8.0.104"
++DOTNETSDK_VERSION="8.0.105"
  DOTNETSDK_INSTALLDIR="$DOTNETSDK_ROOT/$DOTNETSDK_VERSION"
  RUNNER_VERSION=$(cat runnerversion)
  
@@ -779,13 +779,13 @@ index 056a312..3fac602 100644
      </Target>
  
 diff --git a/src/global.json b/src/global.json
-index e7028fe..03e72b7 100644
+index e7028fe..f09cb3e 100644
 --- a/src/global.json
 +++ b/src/global.json
 @@ -1,5 +1,5 @@
  {
    "sdk": {
 -    "version": "6.0.421"
-+    "version": "8.0.104"
++    "version": "8.0.105"
    }
  }
