@@ -27,7 +27,7 @@ setup_dotnet_sdk() {
             PKGS="dotnet-apphost-pack-8.0-8.0.5-1.el9_4 dotnet-host-8.0.5-1.el9_4"
             PKGS="${PKGS} dotnet-hostfxr-8.0-8.0.5-1.el9_4 dotnet-targeting-pack-8.0-8.0.5-1.el9_4"
             PKGS="${PKGS} dotnet-templates-8.0-8.0.105-1.el9_4 dotnet-runtime-8.0-8.0.5-1.el9_4"
-            PKGS="${PKGS} dotnet-sdk-8.0-8.0.105-1.el9_4 aspnetcore-runtime-dbg-8.0-8.0.5-1.el9_4"
+            PKGS="${PKGS} dotnet-sdk-8.0-8.0.105-1.el9_4 aspnetcore-runtime-8.0-8.0.5-1.el9_4"
             PKGS="${PKGS} aspnetcore-targeting-pack-8.0-8.0.5-1.el9_4 netstandard-targeting-pack-2.1-8.0.105-1.el9_4"
             PKGS="${PKGS} dotnet-runtime-dbg-8.0-8.0.5-1.el9_4 dotnet-sdk-dbg-8.0-8.0.105-1.el9_4 aspnetcore-runtime-dbg-8.0-8.0.5-1.el9_4"
             ;;
