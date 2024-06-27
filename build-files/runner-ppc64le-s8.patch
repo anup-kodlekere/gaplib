@@ -125,7 +125,7 @@ index 9378104..7469ca0 100644
              public static readonly Architecture PlatformArchitecture = Architecture.X64;
  #endif
 diff --git a/src/Runner.Common/Runner.Common.csproj b/src/Runner.Common/Runner.Common.csproj
-index 329a024..1a8a0d1 100644
+index 329a024..72d3643 100644
 --- a/src/Runner.Common/Runner.Common.csproj
 +++ b/src/Runner.Common/Runner.Common.csproj
 @@ -1,11 +1,11 @@
@@ -143,6 +143,22 @@ index 329a024..1a8a0d1 100644
      <Version>$(Version)</Version>
    </PropertyGroup>
  
+@@ -15,11 +15,11 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
++    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.4.0" />
+-    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
++    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
++    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
++    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+   </ItemGroup>
+ 
+   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.Common/Util/VarUtil.cs b/src/Runner.Common/Util/VarUtil.cs
 index 97273a1..c577871 100644
 --- a/src/Runner.Common/Util/VarUtil.cs
@@ -173,7 +189,7 @@ index 15291be..a404a67 100644
 +#pragma warning restore CA1416
  #endif
 diff --git a/src/Runner.Listener/Runner.Listener.csproj b/src/Runner.Listener/Runner.Listener.csproj
-index 3cd72ec..8034a73 100644
+index 3cd72ec..7cbe9ac 100644
 --- a/src/Runner.Listener/Runner.Listener.csproj
 +++ b/src/Runner.Listener/Runner.Listener.csproj
 @@ -1,11 +1,12 @@
@@ -192,6 +208,22 @@ index 3cd72ec..8034a73 100644
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+@@ -18,11 +19,11 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
++    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+-    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.4.0" />
+-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.4.0" />
++    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
++    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
++    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
+   </ItemGroup>
+ 
+   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.PluginHost/Runner.PluginHost.csproj b/src/Runner.PluginHost/Runner.PluginHost.csproj
 index df30f34..7c3d3c6 100644
 --- a/src/Runner.PluginHost/Runner.PluginHost.csproj
@@ -233,7 +265,7 @@ index 39245a3..d365000 100644
    </PropertyGroup>
  
 diff --git a/src/Runner.Sdk/Runner.Sdk.csproj b/src/Runner.Sdk/Runner.Sdk.csproj
-index 202e866..feae1e8 100644
+index 202e866..510b08e 100644
 --- a/src/Runner.Sdk/Runner.Sdk.csproj
 +++ b/src/Runner.Sdk/Runner.Sdk.csproj
 @@ -1,11 +1,12 @@
@@ -252,8 +284,21 @@ index 202e866..feae1e8 100644
      <Version>$(Version)</Version>
    </PropertyGroup>
  
+@@ -14,9 +15,9 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.4.0" />
+-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
+-    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
++    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
++    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
++    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+   </ItemGroup>
+ 
+   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.Worker/Runner.Worker.csproj b/src/Runner.Worker/Runner.Worker.csproj
-index eee59b8..f28955f 100644
+index eee59b8..dca73a3 100644
 --- a/src/Runner.Worker/Runner.Worker.csproj
 +++ b/src/Runner.Worker/Runner.Worker.csproj
 @@ -1,11 +1,12 @@
@@ -272,6 +317,19 @@ index eee59b8..f28955f 100644
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+@@ -18,9 +19,9 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.4.0" />
+-    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
++    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
++    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
++    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+     <PackageReference Include="YamlDotNet.Signed" Version="5.3.0" />
+   </ItemGroup>
+ 
 diff --git a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
 index 34c97b7..7236765 100644
 --- a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
@@ -328,7 +386,7 @@ index 536bf75..ee47f13 100644
      [ExceptionMapping("0.0", "3.0", "TaskOrchestrationPlanSecurityException", "GitHub.DistributedTask.WebApi.TaskOrchestrationPlanSecurityException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
      public sealed class TaskOrchestrationPlanSecurityException : DistributedTaskException
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index ff1cb85..2388f72 100644
+index ff1cb85..dc43855 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
 @@ -1,11 +1,12 @@
@@ -347,15 +405,26 @@ index ff1cb85..2388f72 100644
          <Version>$(Version)</Version>
          <DefineConstants>TRACE</DefineConstants>
          <LangVersion>8.0</LangVersion>
-@@ -17,7 +18,7 @@
-         <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
+@@ -14,13 +15,13 @@
+ 
+     <ItemGroup>
+         <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+-        <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
++        <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
          <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-         <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
+-        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
 -        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.1" />
-+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.2.0" />
-         <PackageReference Include="System.Security.Cryptography.Cng" Version="4.4.0" />
-         <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
-         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
+-        <PackageReference Include="System.Security.Cryptography.Cng" Version="4.4.0" />
+-        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
+-        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
++        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
++        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
++        <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
++        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
++        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+         <PackageReference Include="Minimatch" Version="2.0.0" />
+         <PackageReference Include="YamlDotNet.Signed" Version="5.3.0" />
+         <PackageReference Include="System.Net.Http" Version="4.3.4" />
 diff --git a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs b/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
 index 5ebf86f..34ec103 100644
 --- a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
