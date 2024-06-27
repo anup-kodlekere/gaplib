@@ -255,7 +255,7 @@ index eee59b8..05e8ad6 100644
      <NoWarn>NU1701;NU1603</NoWarn>
      <Version>$(Version)</Version>
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index ff1cb85..ad93396 100644
+index ff1cb85..fe0d2ee 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
 @@ -1,9 +1,10 @@
@@ -276,7 +276,7 @@ index ff1cb85..ad93396 100644
          <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
          <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
 -        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.1" />
-+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
++        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.7.0" />
          <PackageReference Include="System.Security.Cryptography.Cng" Version="4.4.0" />
          <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
          <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
