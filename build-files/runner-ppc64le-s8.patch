@@ -754,7 +754,7 @@ index 0fc5876..5898593 100755
  heading "Dotnet SDK Version"
  dotnet --version
 diff --git a/src/dir.proj b/src/dir.proj
-index 056a312..d06af56 100644
+index 056a312..0e27e7a 100644
 --- a/src/dir.proj
 +++ b/src/dir.proj
 @@ -41,14 +41,33 @@
@@ -790,8 +790,8 @@ index 056a312..d06af56 100644
 +                 as this would confuse the expected layout, disable that behavior as well.  -->
 +            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier>
 +        </PropertyGroup>
-+        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) $(PublishRuntimeIdentifier) /p:PackageRuntime=$(PackageRuntime)" ConsoleToMSBuild="true" />
-+        <Exec Command="dotnet test Test/Test.csproj -c $(BUILDCONFIG) $(PublishRuntimeIdentifier) --no-build --logger:trx" ConsoleToMSBuild="true" />
++        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:Configuration=$(PublishRuntimeIdentifier) /p:PackageRuntime=$(PackageRuntime)" ConsoleToMSBuild="true" />
++        <Exec Command="dotnet test Test/Test.csproj -c $(BUILDCONFIG) /p:Configuration=$(PublishRuntimeIdentifier) --no-build --logger:trx" ConsoleToMSBuild="true" />
      </Target>
  
      <Target Name="Layout" DependsOnTargets="Clean;Build">
