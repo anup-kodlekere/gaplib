@@ -189,26 +189,24 @@ index 15291be..a404a67 100644
 +#pragma warning restore CA1416
  #endif
 diff --git a/src/Runner.Listener/Runner.Listener.csproj b/src/Runner.Listener/Runner.Listener.csproj
-index 3cd72ec..7cbe9ac 100644
+index 3cd72ec..a4a58ad 100644
 --- a/src/Runner.Listener/Runner.Listener.csproj
 +++ b/src/Runner.Listener/Runner.Listener.csproj
-@@ -1,11 +1,12 @@
+@@ -1,11 +1,11 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
 -    <TargetFramework>net6.0</TargetFramework>
 +    <TargetFramework>net8.0</TargetFramework>
      <OutputType>Exe</OutputType>
--    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
-+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
-+    <SelfContained>true</SelfContained>
+     <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 -    <NoWarn>NU1701;NU1603</NoWarn>
 +    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
-@@ -18,11 +19,11 @@
+@@ -18,11 +18,11 @@
    </ItemGroup>
  
    <ItemGroup>
@@ -225,19 +223,17 @@ index 3cd72ec..7cbe9ac 100644
  
    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.PluginHost/Runner.PluginHost.csproj b/src/Runner.PluginHost/Runner.PluginHost.csproj
-index df30f34..7c3d3c6 100644
+index df30f34..b4a6f5f 100644
 --- a/src/Runner.PluginHost/Runner.PluginHost.csproj
 +++ b/src/Runner.PluginHost/Runner.PluginHost.csproj
-@@ -1,11 +1,12 @@
+@@ -1,11 +1,11 @@
  ﻿<Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
 -    <TargetFramework>net6.0</TargetFramework>
 +    <TargetFramework>net8.0</TargetFramework>
      <OutputType>Exe</OutputType>
--    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
-+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
-+    <SelfContained>true</SelfContained>
+     <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 -    <NoWarn>NU1701;NU1603</NoWarn>
 +    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
@@ -245,19 +241,17 @@ index df30f34..7c3d3c6 100644
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
 diff --git a/src/Runner.Plugins/Runner.Plugins.csproj b/src/Runner.Plugins/Runner.Plugins.csproj
-index 39245a3..d365000 100644
+index 39245a3..7769ee2 100644
 --- a/src/Runner.Plugins/Runner.Plugins.csproj
 +++ b/src/Runner.Plugins/Runner.Plugins.csproj
-@@ -1,11 +1,12 @@
+@@ -1,11 +1,11 @@
  ﻿<Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
 -    <TargetFramework>net6.0</TargetFramework>
 +    <TargetFramework>net8.0</TargetFramework>
      <OutputType>Library</OutputType>
--    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
-+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
-+    <SelfContained>true</SelfContained>
+     <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 -    <NoWarn>NU1701;NU1603</NoWarn>
 +    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
@@ -265,26 +259,24 @@ index 39245a3..d365000 100644
    </PropertyGroup>
  
 diff --git a/src/Runner.Sdk/Runner.Sdk.csproj b/src/Runner.Sdk/Runner.Sdk.csproj
-index 202e866..510b08e 100644
+index 202e866..ac82f14 100644
 --- a/src/Runner.Sdk/Runner.Sdk.csproj
 +++ b/src/Runner.Sdk/Runner.Sdk.csproj
-@@ -1,11 +1,12 @@
+@@ -1,11 +1,11 @@
  ﻿<Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
 -    <TargetFramework>net6.0</TargetFramework>
 +    <TargetFramework>net8.0</TargetFramework>
      <OutputType>Library</OutputType>
--    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
-+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
-+    <SelfContained>true</SelfContained>
+     <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 -    <NoWarn>NU1701;NU1603</NoWarn>
 +    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
    </PropertyGroup>
  
-@@ -14,9 +15,9 @@
+@@ -14,9 +14,9 @@
    </ItemGroup>
  
    <ItemGroup>
@@ -298,26 +290,24 @@ index 202e866..510b08e 100644
  
    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.Worker/Runner.Worker.csproj b/src/Runner.Worker/Runner.Worker.csproj
-index eee59b8..dca73a3 100644
+index eee59b8..082fafa 100644
 --- a/src/Runner.Worker/Runner.Worker.csproj
 +++ b/src/Runner.Worker/Runner.Worker.csproj
-@@ -1,11 +1,12 @@
+@@ -1,11 +1,11 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
 -    <TargetFramework>net6.0</TargetFramework>
 +    <TargetFramework>net8.0</TargetFramework>
      <OutputType>Exe</OutputType>
--    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
-+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
-+    <SelfContained>true</SelfContained>
+     <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 -    <NoWarn>NU1701;NU1603</NoWarn>
 +    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
-@@ -18,9 +19,9 @@
+@@ -18,9 +18,9 @@
    </ItemGroup>
  
    <ItemGroup>
@@ -386,26 +376,24 @@ index 536bf75..ee47f13 100644
      [ExceptionMapping("0.0", "3.0", "TaskOrchestrationPlanSecurityException", "GitHub.DistributedTask.WebApi.TaskOrchestrationPlanSecurityException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
      public sealed class TaskOrchestrationPlanSecurityException : DistributedTaskException
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index ff1cb85..dc43855 100644
+index ff1cb85..577602c 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
-@@ -1,11 +1,12 @@
+@@ -1,11 +1,11 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
      <PropertyGroup>
 -        <TargetFramework>net6.0</TargetFramework>
 +        <TargetFramework>net8.0</TargetFramework>
          <OutputType>Library</OutputType>
--        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
-+        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
-+        <!-- <SelfContained>true</SelfContained> -->
+         <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
          <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 -        <NoWarn>NU1701;NU1603</NoWarn>
 +        <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
          <Version>$(Version)</Version>
          <DefineConstants>TRACE</DefineConstants>
          <LangVersion>8.0</LangVersion>
-@@ -14,13 +15,13 @@
+@@ -14,13 +14,13 @@
  
      <ItemGroup>
          <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
@@ -418,7 +406,7 @@ index ff1cb85..dc43855 100644
 -        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
 -        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
 +        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
-+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
++        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.2.0" />
 +        <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
@@ -667,7 +655,7 @@ index f6b5889..42237fc 100644
          [Trait("Level", "L0")]
          [Trait("Category", "Worker")]
 diff --git a/src/Test/Test.csproj b/src/Test/Test.csproj
-index 1beddbf..406b8d8 100644
+index 1beddbf..e7dabf5 100644
 --- a/src/Test/Test.csproj
 +++ b/src/Test/Test.csproj
 @@ -1,9 +1,9 @@
@@ -679,7 +667,7 @@ index 1beddbf..406b8d8 100644
 +        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64;linux-ppc64le</RuntimeIdentifiers>
          <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 -        <NoWarn>NU1701;NU1603;NU1603;xUnit2013;</NoWarn>
-+        <NoWarn>NU1701;NU1603;NU1603;NU3042;NU3018;xUnit2013;SYSLIB0050;SYSLIB0051</NoWarn>
++        <NoWarn>NU1701;NU1603;NU1603;xUnit2013;SYSLIB0050;SYSLIB0051</NoWarn>
      </PropertyGroup>
  
      <ItemGroup>
@@ -754,10 +742,10 @@ index 0fc5876..5898593 100755
  heading "Dotnet SDK Version"
  dotnet --version
 diff --git a/src/dir.proj b/src/dir.proj
-index 056a312..3fac602 100644
+index 056a312..3a9bd6f 100644
 --- a/src/dir.proj
 +++ b/src/dir.proj
-@@ -41,8 +41,18 @@
+@@ -41,13 +41,23 @@
      </ItemGroup>
  
      <Target Name="Build" DependsOnTargets="GenerateConstant">
@@ -766,8 +754,8 @@ index 056a312..3fac602 100644
 +        <PropertyGroup>
 +            <!-- Normally we want to publish a self-contained app for $(PackageRuntime) -->
 +            <PublishRuntimeIdentifier>RuntimeIdentifier=$(PackageRuntime)</PublishRuntimeIdentifier>
-+            <!-- However, on s390x there are no apphost or runtime packages on nuget.org, so self-contained publishing is not supported.
-+                 Perform a non-self-contained publish using the current runtime identifier (normally something like rhel.8-s390x) instead.
++            <!-- However, on ppc64le there are no apphost or runtime packages on nuget.org, so self-contained publishing is not supported.
++                 Perform a non-self-contained publish using the current runtime identifier instead.
 +                 In addition, when not using an explicit runtime identifier, the SDK will copy runtime assets from dependent packages;
 +                 as this would confuse the expected layout, disable that behavior as well.  -->
 +            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier>
@@ -776,6 +764,12 @@ index 056a312..3fac602 100644
 +        <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" Properties="$(PublishRuntimeIdentifier)" />
 +        <MSBuild Targets="Publish" Projects="@(ProjectFiles)" BuildInParallel="false" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);Version=$(RunnerVersion);$(PublishRuntimeIdentifier);PublishDir=$(MSBuildProjectDirectory)/../_layout/bin" />
          <Exec Command="%22$(DesktopMSBuild)%22 Runner.Service/Windows/RunnerService.csproj /p:Configuration=$(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:OutputPath=%22$(MSBuildProjectDirectory)/../_layout/bin%22" ConsoleToMSBuild="true" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86' Or '$(PackageRuntime)' == 'win-arm64'" />
+     </Target>
+ 
+     <Target Name="Test" DependsOnTargets="GenerateConstant">
+-        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime)" ConsoleToMSBuild="true" />
++        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:SelfContained=false /p:CopyLocalRuntimeTargetAssets=false" ConsoleToMSBuild="true" />
+         <Exec Command="dotnet test Test/Test.csproj -c $(BUILDCONFIG) --no-build --logger:trx" ConsoleToMSBuild="true" />
      </Target>
  
 diff --git a/src/global.json b/src/global.json
