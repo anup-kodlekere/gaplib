@@ -386,7 +386,7 @@ index 536bf75..ee47f13 100644
      [ExceptionMapping("0.0", "3.0", "TaskOrchestrationPlanSecurityException", "GitHub.DistributedTask.WebApi.TaskOrchestrationPlanSecurityException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
      public sealed class TaskOrchestrationPlanSecurityException : DistributedTaskException
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index ff1cb85..dc43855 100644
+index ff1cb85..e3f6926 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
 @@ -1,11 +1,12 @@
@@ -418,7 +418,7 @@ index ff1cb85..dc43855 100644
 -        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
 -        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
 +        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
-+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
++        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="-+" />
 +        <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
@@ -754,7 +754,7 @@ index 0fc5876..5898593 100755
  heading "Dotnet SDK Version"
  dotnet --version
 diff --git a/src/dir.proj b/src/dir.proj
-index 056a312..3fac602 100644
+index 056a312..bd67310 100644
 --- a/src/dir.proj
 +++ b/src/dir.proj
 @@ -41,8 +41,18 @@
@@ -770,7 +770,7 @@ index 056a312..3fac602 100644
 +                 Perform a non-self-contained publish using the current runtime identifier (normally something like rhel.8-s390x) instead.
 +                 In addition, when not using an explicit runtime identifier, the SDK will copy runtime assets from dependent packages;
 +                 as this would confuse the expected layout, disable that behavior as well.  -->
-+            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier>
++            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=true</PublishRuntimeIdentifier>
 +        </PropertyGroup>
 +
 +        <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" Properties="$(PublishRuntimeIdentifier)" />
