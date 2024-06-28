@@ -754,10 +754,10 @@ index 0fc5876..5898593 100755
  heading "Dotnet SDK Version"
  dotnet --version
 diff --git a/src/dir.proj b/src/dir.proj
-index 056a312..0e27e7a 100644
+index 056a312..73896f5 100644
 --- a/src/dir.proj
 +++ b/src/dir.proj
-@@ -41,14 +41,33 @@
+@@ -41,13 +41,23 @@
      </ItemGroup>
  
      <Target Name="Build" DependsOnTargets="GenerateConstant">
@@ -780,21 +780,10 @@ index 056a312..0e27e7a 100644
  
      <Target Name="Test" DependsOnTargets="GenerateConstant">
 -        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime)" ConsoleToMSBuild="true" />
--        <Exec Command="dotnet test Test/Test.csproj -c $(BUILDCONFIG) --no-build --logger:trx" ConsoleToMSBuild="true" />
-+        <PropertyGroup>
-+            <!-- Normally we want to publish a self-contained app for $(PackageRuntime) -->
-+            <PublishRuntimeIdentifier>RuntimeIdentifier=$(PackageRuntime)</PublishRuntimeIdentifier>
-+            <!-- However, on s390x there are no apphost or runtime packages on nuget.org, so self-contained publishing is not supported.
-+                 Perform a non-self-contained publish using the current runtime identifier (normally something like rhel.8-s390x) instead.
-+                 In addition, when not using an explicit runtime identifier, the SDK will copy runtime assets from dependent packages;
-+                 as this would confuse the expected layout, disable that behavior as well.  -->
-+            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier>
-+        </PropertyGroup>
-+        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:Configuration=$(PublishRuntimeIdentifier) /p:PackageRuntime=$(PackageRuntime)" ConsoleToMSBuild="true" />
-+        <Exec Command="dotnet test Test/Test.csproj -c $(BUILDCONFIG) /p:Configuration=$(PublishRuntimeIdentifier) --no-build --logger:trx" ConsoleToMSBuild="true" />
++        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:SelfContained=false /p:CopyLocalRuntimeTargetAssets=false" ConsoleToMSBuild="true" />
+         <Exec Command="dotnet test Test/Test.csproj -c $(BUILDCONFIG) --no-build --logger:trx" ConsoleToMSBuild="true" />
      </Target>
  
-     <Target Name="Layout" DependsOnTargets="Clean;Build">
 diff --git a/src/global.json b/src/global.json
 index e7028fe..f09cb3e 100644
 --- a/src/global.json
