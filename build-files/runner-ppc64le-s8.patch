@@ -386,7 +386,7 @@ index 536bf75..ee47f13 100644
      [ExceptionMapping("0.0", "3.0", "TaskOrchestrationPlanSecurityException", "GitHub.DistributedTask.WebApi.TaskOrchestrationPlanSecurityException, GitHub.DistributedTask.WebApi, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
      public sealed class TaskOrchestrationPlanSecurityException : DistributedTaskException
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index ff1cb85..e3f6926 100644
+index ff1cb85..f37f272 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
 @@ -1,11 +1,12 @@
@@ -418,7 +418,7 @@ index ff1cb85..e3f6926 100644
 -        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
 -        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
 +        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
-+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="-+" />
++        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.2.0" />
 +        <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
