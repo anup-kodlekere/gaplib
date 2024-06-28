@@ -754,7 +754,7 @@ index 0fc5876..5898593 100755
  heading "Dotnet SDK Version"
  dotnet --version
 diff --git a/src/dir.proj b/src/dir.proj
-index 056a312..bd67310 100644
+index 056a312..3fac602 100644
 --- a/src/dir.proj
 +++ b/src/dir.proj
 @@ -41,8 +41,18 @@
@@ -770,7 +770,7 @@ index 056a312..bd67310 100644
 +                 Perform a non-self-contained publish using the current runtime identifier (normally something like rhel.8-s390x) instead.
 +                 In addition, when not using an explicit runtime identifier, the SDK will copy runtime assets from dependent packages;
 +                 as this would confuse the expected layout, disable that behavior as well.  -->
-+            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=true</PublishRuntimeIdentifier>
++            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier>
 +        </PropertyGroup>
 +
 +        <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" Properties="$(PublishRuntimeIdentifier)" />
