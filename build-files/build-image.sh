@@ -4,6 +4,10 @@ update_fresh_container() {
     echo "Upgrading and installing packages"
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update -y
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install alien libicu70 -y
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install alien libicu70 -y
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo DEBIAN_FRONTEND=noninteractive sh ./get-docker.sh --dry-run
+    sudo chmod 666 /var/run/docker.sock
 
     if [ $? -ne 0 ]; then
         exit 32
