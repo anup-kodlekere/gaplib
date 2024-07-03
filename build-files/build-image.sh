@@ -18,11 +18,8 @@ update_fresh_container() {
     sudo apt-get update -y
 
     sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-    sudo chmod 666 /var/run/docker.sock
-
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install alien libicu70 -y
-
-
+    
     if [ $? -ne 0 ]; then
         exit 32
     fi
@@ -36,6 +33,7 @@ update_fresh_container() {
 
     echo "Make sure we have lxd authority"
     sudo usermod -G lxd -a ubuntu
+    sudo chmod 666 /var/run/docker.sock
 }
 
 setup_dotnet_sdk() {
