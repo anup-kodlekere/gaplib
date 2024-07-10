@@ -1,7 +1,6 @@
 #!/bin/bash
 
 update_fresh_container() {
-    echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo
     echo "Upgrading and installing packages"
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update -y
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install alien libicu70 -y
