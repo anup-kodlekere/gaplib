@@ -14,15 +14,8 @@ RUN     cd /tmp && \
         git clone -q ${RUNNERREPO} && \
         cd runner && \
         git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
+        sed -i'' -e /version/s/6......\"$/${SDK}.0.100\"/ src/global.json && \
         git apply /tmp/runner.patch 
-
-RUN     if [ "${SDK}" -ne 6 ]; then \
-            cd /usr/lib64/dotnet/packs; \
-            ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.Runtime.linux-${ARCH}; \
-            ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.linux-${ARCH}; \
-            ln -s Microsoft.NETCore.App.Host.rhel.9-${ARCH} Microsoft.NETCore.App.Host.linux-${ARCH}; \
-            ln -s Microsoft.NETCore.App.Ref Microsoft.NETCore.App.Runtime.linux-${ARCH}; \
-        fi
 
 RUN     cd /tmp/runner/src && \
         ./dev.sh layout && \
