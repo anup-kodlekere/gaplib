@@ -90,7 +90,7 @@ patch_runner() {
     cd /tmp
     git clone -q ${RUNNERREPO}
     cd runner
-    git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b ${ARCH}
+    git checkout ${RUNNERVERSION} -b ${ARCH}
     git apply /home/ubuntu/runner-${ARCH}.patch
     return $?
 }
@@ -159,6 +159,7 @@ export HOME=/home/ubuntu
 ARCH=`uname -m`
 SDK=""
 RUNNERREPO="https://github.com/actions/runner"
+RUNNERVERSION="v2.317.0"
 while getopts "a:s:" opt
 do
     case ${opt} in
