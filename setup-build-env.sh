@@ -75,6 +75,9 @@ build_image_in_container() {
   echo "Copy the gha-service unit file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/gha-runner.service "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service"
 
+  echo "Setting user ubuntu with sudo privileges"
+  lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo"
+
   echo "Running build-image.sh"
   lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
   RC=$?

@@ -4,7 +4,7 @@ usage() {
     echo
     echo "Where flags:"
     echo "-b [docker|podman]           Image build tool to use - defaults to which it finds first"
-    echo "-s <sdk>                     SDK to use (6 or 7 ...). Default 6 for s390x and 7 for ppc64le"
+    echo "-s <sdk>                     SDK to use (6 or 7 or 8 ...). Default 6 for s390x and 7 or 8 for ppc64le"
     echo "-h                           Display this usage information"
     echo
     echo "If no distribution is specified then images for both are built"

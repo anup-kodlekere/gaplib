@@ -6,9 +6,13 @@ ENV     DEBIAN_FRONTEND=noninteractive
 
 RUN     apt-get -qq update -y && \
         apt-get -qq -y install wget git sudo alien curl libicu70 sudo && \
+        apt-get -qq -y install cpio rpm2cpio && \
         apt autoclean
 
 COPY    build-files/convert-rpm.sh /tmp
+
+RUN     sed "s/--no-absolute-filenames//" /usr/share/perl5/Alien/Package/Rpm.pm > /tmp/Rpm.pm
+RUN     cp /tmp/Rpm.pm /usr/share/perl5/Alien/Package/Rpm.pm
 
 RUN     /tmp/convert-rpm.sh ${SDK}
 
