@@ -1,5 +1,5 @@
 diff --git a/src/Directory.Build.props b/src/Directory.Build.props
-index 9db5fac..f02e235 100644
+index 9db5faca..f02e2357 100644
 --- a/src/Directory.Build.props
 +++ b/src/Directory.Build.props
 @@ -44,6 +44,9 @@
@@ -13,10 +13,10 @@ index 9db5fac..f02e235 100644
    <!-- Set TRACE/DEBUG vars -->
    <PropertyGroup>
 diff --git a/src/Misc/externals.sh b/src/Misc/externals.sh
-index 383221e..1555f67 100755
+index e057ecb2..eb422422 100755
 --- a/src/Misc/externals.sh
 +++ b/src/Misc/externals.sh
-@@ -189,3 +189,8 @@ if [[ "$PACKAGERUNTIME" == "linux-arm" ]]; then
+@@ -190,3 +190,8 @@ if [[ "$PACKAGERUNTIME" == "linux-arm" ]]; then
      acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-armv7l.tar.gz" node16 fix_nested_dir
      acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-linux-armv7l.tar.gz" node20 fix_nested_dir
  fi
@@ -26,7 +26,7 @@ index 383221e..1555f67 100755
 +    acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-linux-s390x.tar.gz" node20 fix_nested_dir
 +fi
 diff --git a/src/Misc/layoutroot/config.sh b/src/Misc/layoutroot/config.sh
-index 14cc6ba..9b5b8e6 100755
+index 14cc6bab..9b5b8e6f 100755
 --- a/src/Misc/layoutroot/config.sh
 +++ b/src/Misc/layoutroot/config.sh
 @@ -20,25 +20,29 @@ then
@@ -77,7 +77,7 @@ index 14cc6ba..9b5b8e6 100755
  
      if ! [ -x "$(command -v ldconfig)" ]; then
 diff --git a/src/Runner.Common/Constants.cs b/src/Runner.Common/Constants.cs
-index 177e3c9..9545981 100644
+index d68d5cdf..4c6205cf 100644
 --- a/src/Runner.Common/Constants.cs
 +++ b/src/Runner.Common/Constants.cs
 @@ -58,7 +58,8 @@ namespace GitHub.Runner.Common
@@ -100,7 +100,7 @@ index 177e3c9..9545981 100644
              public static readonly Architecture PlatformArchitecture = Architecture.X64;
  #endif
 diff --git a/src/Runner.Common/Util/VarUtil.cs b/src/Runner.Common/Util/VarUtil.cs
-index 97273a1..2a34430 100644
+index 97273a1a..2a344300 100644
 --- a/src/Runner.Common/Util/VarUtil.cs
 +++ b/src/Runner.Common/Util/VarUtil.cs
 @@ -53,6 +53,8 @@ namespace GitHub.Runner.Common.Util
@@ -113,7 +113,7 @@ index 97273a1..2a34430 100644
                          throw new NotSupportedException(); // Should never reach here.
                  }
 diff --git a/src/Test/L0/ConstantGenerationL0.cs b/src/Test/L0/ConstantGenerationL0.cs
-index 2042485..a9d8b46 100644
+index f3c1b8f9..48127330 100644
 --- a/src/Test/L0/ConstantGenerationL0.cs
 +++ b/src/Test/L0/ConstantGenerationL0.cs
 @@ -20,6 +20,7 @@ namespace GitHub.Runner.Common.Tests
@@ -125,7 +125,7 @@ index 2042485..a9d8b46 100644
                  "osx-arm64"
              };
 diff --git a/src/Test/L0/Listener/SelfUpdaterL0.cs b/src/Test/L0/Listener/SelfUpdaterL0.cs
-index 26ba65e..6791df3 100644
+index 26ba65e7..6791df33 100644
 --- a/src/Test/L0/Listener/SelfUpdaterL0.cs
 +++ b/src/Test/L0/Listener/SelfUpdaterL0.cs
 @@ -1,4 +1,4 @@
@@ -150,7 +150,7 @@ index 26ba65e..6791df3 100644
  }
  #endif
 diff --git a/src/Test/L0/Listener/SelfUpdaterV2L0.cs b/src/Test/L0/Listener/SelfUpdaterV2L0.cs
-index 5115a6b..dd8d198 100644
+index 5115a6bb..dd8d198e 100644
 --- a/src/Test/L0/Listener/SelfUpdaterV2L0.cs
 +++ b/src/Test/L0/Listener/SelfUpdaterV2L0.cs
 @@ -1,4 +1,4 @@
@@ -160,7 +160,7 @@ index 5115a6b..dd8d198 100644
  using System.Collections.Generic;
  using System.IO;
 diff --git a/src/Test/L0/Worker/StepHostL0.cs b/src/Test/L0/Worker/StepHostL0.cs
-index f6b5889..26f8e21 100644
+index f6b58890..26f8e216 100644
 --- a/src/Test/L0/Worker/StepHostL0.cs
 +++ b/src/Test/L0/Worker/StepHostL0.cs
 @@ -31,7 +31,7 @@ namespace GitHub.Runner.Common.Tests.Worker
@@ -173,7 +173,7 @@ index f6b5889..26f8e21 100644
          [Trait("Level", "L0")]
          [Trait("Category", "Worker")]
 diff --git a/src/dev.sh b/src/dev.sh
-index fa637d1..8c66f37 100755
+index 8120ef33..695844c3 100755
 --- a/src/dev.sh
 +++ b/src/dev.sh
 @@ -54,6 +54,7 @@ elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
@@ -217,10 +217,10 @@ index fa637d1..8c66f37 100755
  heading "Dotnet SDK Version"
  dotnet --version
 diff --git a/src/dir.proj b/src/dir.proj
-index 056a312..8370922 100644
+index 056a312e..7ec511f1 100644
 --- a/src/dir.proj
 +++ b/src/dir.proj
-@@ -41,8 +41,18 @@
+@@ -41,13 +41,27 @@
      </ItemGroup>
  
      <Target Name="Build" DependsOnTargets="GenerateConstant">
@@ -240,15 +240,25 @@ index 056a312..8370922 100644
 +        <MSBuild Targets="Publish" Projects="@(ProjectFiles)" BuildInParallel="false" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);Version=$(RunnerVersion);$(PublishRuntimeIdentifier);PublishDir=$(MSBuildProjectDirectory)/../_layout/bin" />
          <Exec Command="%22$(DesktopMSBuild)%22 Runner.Service/Windows/RunnerService.csproj /p:Configuration=$(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:OutputPath=%22$(MSBuildProjectDirectory)/../_layout/bin%22" ConsoleToMSBuild="true" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86' Or '$(PackageRuntime)' == 'win-arm64'" />
      </Target>
-
+ 
+     <Target Name="Test" DependsOnTargets="GenerateConstant">
+-        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime)" ConsoleToMSBuild="true" />
++        <PropertyGroup>
++            <BuildTestProperties />
++            <BuildTestProperties Condition="'$(PackageRuntime)' == 'linux-s390x'">/p:SelfContained=false</BuildTestProperties>
++        </PropertyGroup>
++        <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) $(BuildTestProperties)" ConsoleToMSBuild="true" />
+         <Exec Command="dotnet test Test/Test.csproj -c $(BUILDCONFIG) --no-build --logger:trx" ConsoleToMSBuild="true" />
+     </Target>
+ 
 diff --git a/src/global.json b/src/global.json
-index b014aea..70e3dcc 100644
+index fd07d882..03e72b75 100644
 --- a/src/global.json
 +++ b/src/global.json
 @@ -1,5 +1,5 @@
  {
    "sdk": {
--    "version": "6.0.419"
-+    "version": "6.0.126"
+-    "version": "8.0.303"
++    "version": "8.0.104"
    }
  }

@@ -47,7 +47,7 @@ if [ -z "${SDK}" ]; then
             SDK=7
             ;;
         s390x)
-            SDK=6
+            SDK=8
             ;;
     esac
 fi
