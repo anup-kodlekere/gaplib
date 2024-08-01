@@ -1,14 +1,16 @@
 FROM    ubuntu:22.04
 
-ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH
-
 ENV     DEBIAN_FRONTEND=noninteractive
 
 RUN     apt-get -qq update -y && \
         apt-get -qq -y install wget git sudo alien curl libicu70 sudo && \
         apt autoclean
 
+RUN     sed -i'' -e 's/--no-absolute-filenames//' /usr/share/perl5/Alien/Package/Rpm.pm
+
 COPY    build-files/convert-rpm.sh /tmp
+
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH
 
 RUN     /tmp/convert-rpm.sh ${SDK}
 
@@ -22,15 +24,17 @@ RUN     cd /tmp && \
         git clone -q ${RUNNERREPO} && \
         cd runner && \
         git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
-        git apply /tmp/runner.patch 
+        git apply /tmp/runner.patch
 
 RUN     if [ "${SDK}" -ne 6 ]; then \
             cd /usr/lib64/dotnet/packs; \
-            ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.Runtime.linux-${ARCH}; \
+            ln -s Microsoft.AspNetCore.App.Runtime.rhel.9-${ARCH} Microsoft.AspNetCore.App.Runtime.linux-${ARCH}; \
             ln -s Microsoft.AspNetCore.App.Ref Microsoft.AspNetCore.App.linux-${ARCH}; \
             ln -s Microsoft.NETCore.App.Host.rhel.9-${ARCH} Microsoft.NETCore.App.Host.linux-${ARCH}; \
-            ln -s Microsoft.NETCore.App.Ref Microsoft.NETCore.App.Runtime.linux-${ARCH}; \
+            ln -s Microsoft.NETCore.App.Runtime.rhel.9-${ARCH} Microsoft.NETCore.App.Runtime.linux-${ARCH}; \
         fi
+
+ENV     DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 
 RUN     cd /tmp/runner/src && \
         ./dev.sh layout && \
