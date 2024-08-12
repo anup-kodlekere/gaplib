@@ -11,6 +11,17 @@ index 032387b..ccc59c4 100644
      },
      "ghcr.io/devcontainers/features/node:1": {
        "version": "16"
+diff --git a/.gitignore b/.gitignore
+index 34d18c4..411fe40 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -26,4 +26,5 @@ _dotnetsdk
+ TestResults
+ TestLogs
+ .DS_Store
++.mono
+ **/*.DotSettings.user
+\ No newline at end of file
 diff --git a/src/Directory.Build.props b/src/Directory.Build.props
 index 9db5fac..b22a2b0 100644
 --- a/src/Directory.Build.props
@@ -26,7 +37,7 @@ index 9db5fac..b22a2b0 100644
    <!-- Set TRACE/DEBUG vars -->
    <PropertyGroup>
 diff --git a/src/Misc/externals.sh b/src/Misc/externals.sh
-index e057ecb..ce54597 100755
+index e057ecb..c467bc3 100755
 --- a/src/Misc/externals.sh
 +++ b/src/Misc/externals.sh
 @@ -190,3 +190,8 @@ if [[ "$PACKAGERUNTIME" == "linux-arm" ]]; then
@@ -38,17 +49,14 @@ index e057ecb..ce54597 100755
 +    acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-ppc64le.tar.gz" node16 fix_nested_dir
 +    acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-linux-ppc64le.tar.gz" node20 fix_nested_dir
 +fi
-\ No newline at end of file
 diff --git a/src/Misc/layoutroot/config.sh b/src/Misc/layoutroot/config.sh
-index 14cc6ba..704a6be 100755
+index 14cc6ba..9b5b8e6 100755
 --- a/src/Misc/layoutroot/config.sh
 +++ b/src/Misc/layoutroot/config.sh
-@@ -18,27 +18,29 @@ then
-         exit 1
-     fi
+@@ -20,25 +20,29 @@ then
  
--    message="Execute sudo ./bin/installdependencies.sh to install any missing Dotnet Core 6.0 dependencies."
--
+     message="Execute sudo ./bin/installdependencies.sh to install any missing Dotnet Core 6.0 dependencies."
+ 
 -    ldd ./bin/libcoreclr.so | grep 'not found'
 -    if [ $? -eq 0 ]; then
 -        echo "Dependencies is missing for Dotnet Core 6.0"
@@ -163,6 +171,22 @@ index 97273a1..c577871 100644
                      default:
                          throw new NotSupportedException(); // Should never reach here.
                  }
+diff --git a/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs b/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs
+index 15291be..a404a67 100644
+--- a/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs
++++ b/src/Runner.Listener/Configuration/RSAEncryptedFileKeyManager.cs
+@@ -1,4 +1,5 @@
+ ﻿#if OS_WINDOWS
++#pragma warning disable CA1416
+ using System.IO;
+ using System.Security.Cryptography;
+ using System.Text;
+@@ -84,4 +85,5 @@ namespace GitHub.Runner.Listener.Configuration
+         }
+     }
+ }
++#pragma warning restore CA1416
+ #endif
 diff --git a/src/Runner.Listener/Runner.Listener.csproj b/src/Runner.Listener/Runner.Listener.csproj
 index 3cd72ec..7cbe9ac 100644
 --- a/src/Runner.Listener/Runner.Listener.csproj
@@ -240,7 +264,7 @@ index 39245a3..d365000 100644
    </PropertyGroup>
  
 diff --git a/src/Runner.Sdk/Runner.Sdk.csproj b/src/Runner.Sdk/Runner.Sdk.csproj
-index 202e866..9a726e4 100644
+index 202e866..510b08e 100644
 --- a/src/Runner.Sdk/Runner.Sdk.csproj
 +++ b/src/Runner.Sdk/Runner.Sdk.csproj
 @@ -1,11 +1,12 @@
@@ -267,13 +291,13 @@ index 202e866..9a726e4 100644
 -    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
 -    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
 +    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
-+    <PackageReference Include="Microsoft.Win32.Registry" Version="8.0.0" />
++    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
 +    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
    </ItemGroup>
  
    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.Worker/Runner.Worker.csproj b/src/Runner.Worker/Runner.Worker.csproj
-index eee59b8..bf62186 100644
+index eee59b8..dca73a3 100644
 --- a/src/Runner.Worker/Runner.Worker.csproj
 +++ b/src/Runner.Worker/Runner.Worker.csproj
 @@ -1,11 +1,12 @@
@@ -292,23 +316,45 @@ index eee59b8..bf62186 100644
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
-@@ -18,10 +19,10 @@
+@@ -18,9 +19,9 @@
    </ItemGroup>
  
    <ItemGroup>
 -    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
 -    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.4.0" />
 -    <PackageReference Include="System.Threading.Channels" Version="4.4.0" />
--    <PackageReference Include="YamlDotNet.Signed" Version="5.3.0" />
 +    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
 +    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
 +    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
-+    <PackageReference Include="YamlDotNet.Signed" Version="8.0.0" />
+     <PackageReference Include="YamlDotNet.Signed" Version="5.3.0" />
    </ItemGroup>
  
-   <ItemGroup>
+diff --git a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
+index 34c97b7..7236765 100644
+--- a/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
++++ b/src/Sdk/Common/Common/Exceptions/PropertyExceptions.cs
+@@ -34,6 +34,7 @@ namespace GitHub.Services.Common
+ 
+         public String PropertyName { get; set; }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+diff --git a/src/Sdk/Common/Common/VssException.cs b/src/Sdk/Common/Common/VssException.cs
+index 7cead78..5f8fb8c 100644
+--- a/src/Sdk/Common/Common/VssException.cs
++++ b/src/Sdk/Common/Common/VssException.cs
+@@ -127,6 +127,7 @@ namespace GitHub.Services.Common
+             EventId = (int)info.GetValue("m_eventId", typeof(int));
+         }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index ff1cb85..dc43855 100644
+index ff1cb85..f37f272 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
 @@ -1,11 +1,12 @@
@@ -340,13 +386,37 @@ index ff1cb85..dc43855 100644
 -        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.4.0" />
 -        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.4.0" />
 +        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
-+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
++        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.2.0" />
 +        <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
 +        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
          <PackageReference Include="Minimatch" Version="2.0.0" />
          <PackageReference Include="YamlDotNet.Signed" Version="5.3.0" />
          <PackageReference Include="System.Net.Http" Version="4.3.4" />
+diff --git a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs b/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
+index 5ebf86f..34ec103 100644
+--- a/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
++++ b/src/Sdk/WebApi/WebApi/OAuth/VssOAuthExceptions.cs
+@@ -85,6 +85,7 @@ namespace GitHub.Services.OAuth
+             set;
+         }
+ 
++        [Obsolete]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
+             base.GetObjectData(info, context);
+diff --git a/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs b/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
+index e4aa84a..8dc275c 100644
+--- a/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
++++ b/src/Sdk/WebApi/WebApi/VssServiceResponseException.cs
+@@ -24,6 +24,7 @@ namespace GitHub.Services.WebApi
+             HttpStatusCode = (HttpStatusCode)info.GetInt32("HttpStatusCode");
+         }
+ 
++        [Obsolete]
+         [SecurityCritical]
+         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+         {
 diff --git a/src/Test/L0/ConstantGenerationL0.cs b/src/Test/L0/ConstantGenerationL0.cs
 index f3c1b8f..2a448ad 100644
 --- a/src/Test/L0/ConstantGenerationL0.cs
