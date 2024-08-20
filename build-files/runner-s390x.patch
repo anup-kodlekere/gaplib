@@ -241,14 +241,3 @@ index 056a312..8370922 100644
          <Exec Command="%22$(DesktopMSBuild)%22 Runner.Service/Windows/RunnerService.csproj /p:Configuration=$(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:OutputPath=%22$(MSBuildProjectDirectory)/../_layout/bin%22" ConsoleToMSBuild="true" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86' Or '$(PackageRuntime)' == 'win-arm64'" />
      </Target>
 
-diff --git a/src/global.json b/src/global.json
-index b014aea..70e3dcc 100644
---- a/src/global.json
-+++ b/src/global.json
-@@ -1,5 +1,5 @@
- {
-   "sdk": {
--    "version": "6.0.419"
-+    "version": "6.0.126"
-   }
- }
