@@ -44,6 +44,7 @@ setup_dotnet_sdk() {
             ;;
     esac
     echo "Retrieving dotnet packages"
+    sudo sed -i'' -e 's/--no-absolute-filenames//' /usr/share/perl5/Alien/Package/Rpm.pm
     pushd /tmp >/dev/null
     for pkg in ${PKGS}
     do
@@ -92,6 +93,7 @@ patch_runner() {
     cd runner
     git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b ${ARCH}
     git apply /home/ubuntu/runner-${ARCH}.patch
+    sed -i'' -e /version/s/6......\"$/${SDK}.0.100\"/ src/global.json
     return $?
 }
 

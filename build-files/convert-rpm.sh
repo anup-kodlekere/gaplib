@@ -33,21 +33,24 @@ case "${SDK}" in
     #     PKGS="${PKGS} aspnetcore-targeting-pack-6.0-6.0.26-1.el9_3 netstandard-targeting-pack-2.1-8.0.101-1.el9_3"
     #     ;;
     *)
-        echo "Unsupported SDK ${SDK}" >&2
-        exit 1
+        echo "Unsupported architecture ${ARCH}" >&2
+        return 1
         ;;
 esac
 echo "Retrieving dotnet packages"
+if [ ${ID} = "ubuntu" ]; then
+    sed -i'' -e 's/--no-absolute-filenames//' /usr/share/perl5/Alien/Package/Rpm.pm
+fi
 pushd /tmp >/dev/null
 for pkg in ${PKGS}
 do
     RPM="${pkg}.${ARCH}.rpm"
     wget -q ${MIRROR}/${RPM}
-    if [ ${ID} == "ubuntu" ]; then
+    if [ ${ID} = "ubuntu" ]; then
         echo -n "Converting ${RPM}... "
         alien -d ${RPM} |& grep -v ^warning
         if [ $? -ne 0 ]; then
-            exit 2
+            return 2
         fi
         rm -f ${RPM}
     fi
