@@ -4,10 +4,14 @@ update_fresh_container() {
     echo "Upgrading and installing packages"
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update -y
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install alien libicu70 -y
+
     if [ $? -ne 0 ]; then
         exit 32
     fi
     sudo apt autoclean
+
+    sudo sed "s/--no-absolute-filenames//" /usr/share/perl5/Alien/Package/Rpm.pm > /tmp/Rpm.pm
+    sudo cp /tmp/Rpm.pm /usr/share/perl5/Alien/Package/Rpm.pm
 
     echo "Initializing LXD environment"
     sudo lxd init --preseed </tmp/lxd-preseed.yaml
@@ -19,19 +23,20 @@ update_fresh_container() {
 setup_dotnet_sdk() {
     MIRROR="https://mirror.lchs.network/pub/almalinux/9/AppStream/${ARCH}/os/Packages"
     case "${SDK}" in 
+        8)
+            PKGS="dotnet-apphost-pack-8.0-8.0.5-1.el9_4 dotnet-host-8.0.5-1.el9_4"
+            PKGS="${PKGS} dotnet-hostfxr-8.0-8.0.5-1.el9_4 dotnet-targeting-pack-8.0-8.0.5-1.el9_4"
+            PKGS="${PKGS} dotnet-templates-8.0-8.0.105-1.el9_4 dotnet-runtime-8.0-8.0.5-1.el9_4"
+            PKGS="${PKGS} dotnet-sdk-8.0-8.0.105-1.el9_4 aspnetcore-runtime-8.0-8.0.5-1.el9_4"
+            PKGS="${PKGS} aspnetcore-targeting-pack-8.0-8.0.5-1.el9_4 netstandard-targeting-pack-2.1-8.0.105-1.el9_4"
+            PKGS="${PKGS} dotnet-runtime-dbg-8.0-8.0.5-1.el9_4 dotnet-sdk-dbg-8.0-8.0.105-1.el9_4 aspnetcore-runtime-dbg-8.0-8.0.5-1.el9_4"
+            ;;
         7)
             PKGS="dotnet-apphost-pack-7.0-7.0.19-1.el9_4 dotnet-host-8.0.5-1.el9_4"
             PKGS="${PKGS} dotnet-hostfxr-7.0-7.0.19-1.el9_4 dotnet-targeting-pack-7.0-7.0.19-1.el9_4"
             PKGS="${PKGS} dotnet-templates-7.0-7.0.119-1.el9_4 dotnet-runtime-7.0-7.0.19-1.el9_4"
             PKGS="${PKGS} dotnet-sdk-7.0-7.0.119-1.el9_4 aspnetcore-runtime-7.0-7.0.19-1.el9_4"
             PKGS="${PKGS} aspnetcore-targeting-pack-7.0-7.0.19-1.el9_4 netstandard-targeting-pack-2.1-8.0.105-1.el9_4"
-            ;;
-        6)
-            PKGS="dotnet-host-8.0.5-1.el9_4 dotnet-apphost-pack-6.0-6.0.30-1.el9_4"
-            PKGS="${PKGS} dotnet-hostfxr-6.0-6.0.30-1.el9_4 dotnet-targeting-pack-6.0-6.0.30-1.el9_4"
-            PKGS="${PKGS} dotnet-templates-6.0-6.0.130-1.el9_4 dotnet-runtime-6.0-6.0.30-1.el9_4"
-            PKGS="${PKGS} dotnet-sdk-6.0-6.0.130-1.el9_4 aspnetcore-runtime-6.0-6.0.30-1.el9_4"
-            PKGS="${PKGS} aspnetcore-targeting-pack-6.0-6.0.30-1.el9_4 netstandard-targeting-pack-2.1-8.0.105-1.el9_4"
             ;;
         *)
             echo "Unsupported architecture ${ARCH}" >&2
@@ -93,6 +98,7 @@ patch_runner() {
 }
 
 build_runner() {
+    export DOTNET_NUGET_SIGNATURE_VERIFICATION=false
     echo "Building runner binary"
     cd src
 
@@ -184,3 +190,5 @@ fi
 
 run "$@"
 exit $?
+
+
