@@ -13,7 +13,6 @@ storage_pools:
   description: "gaplib storage pool"
   name: default
   driver: lvm
-storage_volumes: []
 profiles:
 - config: {}
   description: "gaplib"
@@ -27,5 +26,4 @@ profiles:
       pool: default
       type: disk
   name: default
-projects: []
 cluster: null
