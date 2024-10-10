@@ -101,7 +101,7 @@ index 14cc6ba..9b5b8e6 100755
  
      if ! [ -x "$(command -v ldconfig)" ]; then
 diff --git a/src/Runner.Common/Constants.cs b/src/Runner.Common/Constants.cs
-index 849228b..1e1bc28 100644
+index 383ec7a..835558f 100644
 --- a/src/Runner.Common/Constants.cs
 +++ b/src/Runner.Common/Constants.cs
 @@ -58,7 +58,8 @@ namespace GitHub.Runner.Common
