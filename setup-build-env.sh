@@ -88,7 +88,7 @@ build_image_in_container() {
   lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
 
   echo "Running install-packages.sh"
-  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/install-packages.sh packages.txt
+  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/install-packages.sh ${BUILD_HOME}/packages.txt
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
