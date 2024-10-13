@@ -60,6 +60,12 @@ build_image_in_container() {
   echo "Copy the build-image script into gha-builder"
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/build-image.sh" "${BUILD_CONTAINER}${BUILD_HOME}/build-image.sh"
   
+  echo "Copy the build-image script into gha-builder"
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-packages.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-packages.sh"
+
+  echo "Copy the build-image script into gha-builder"
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/packages.txt" "${BUILD_CONTAINER}${BUILD_HOME}/packages.txt"
+
   echo "Copy the patch file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/${PATCH_FILE} "${BUILD_CONTAINER}${BUILD_HOME}/"
 
@@ -80,6 +86,9 @@ build_image_in_container() {
   
   echo "Running build-image.sh"
   lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
+
+  echo "Running install-packages.sh"
+  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/install-packages.sh packages.txt
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
