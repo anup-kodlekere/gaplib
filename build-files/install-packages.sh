@@ -42,6 +42,7 @@ while IFS= read -r package || [ -n "$package" ]; do
     if [[ ! -z "$package" && "$package" != \#* ]]; then
         echo "Installing $package..."
         sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install -y "$package"
+        sudo dpkg --configure -a
     fi
 done < "$PACKAGE_LIST_FILE"
 
