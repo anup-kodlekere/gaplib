@@ -2,6 +2,7 @@ lsscsi
 lz4
 m4
 make
+maven
 mediainfo
 mercurial
 microsoft-edge-stable
@@ -124,6 +125,7 @@ walinuxagent
 wget
 xvfb
 xz-utils
+yarn
 zip
 zlib1g-dev
 zsync
