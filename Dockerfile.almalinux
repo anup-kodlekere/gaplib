@@ -1,6 +1,6 @@
 FROM    almalinux:9
 
-ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH ARCH
 
 RUN     dnf update -y -q && \
         dnf install -y -q wget git which langpacks-en glibc-all-langpacks sudo
@@ -14,7 +14,7 @@ RUN     cd /tmp && \
         git clone -q ${RUNNERREPO} && \
         cd runner && \
         git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
-        sed -i'' -e /version/s/6......\"$/${SDK}.0.100\"/ src/global.json && \
+        sed -i'' -e /version/s/8......\"$/${SDK}.0.100\"/ src/global.json && \
         git apply /tmp/runner.patch 
 
 RUN     cd /tmp/runner/src && \
