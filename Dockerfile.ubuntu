@@ -1,20 +1,12 @@
-FROM    ubuntu:22.04
+FROM    ubuntu:24.10
 
-ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK ARCH
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK=8 ARCH
 
 ENV     DEBIAN_FRONTEND=noninteractive
 
 RUN     apt-get -qq update -y && \
-        apt-get -qq -y install wget git sudo alien curl libicu70 sudo && \
-        apt-get -qq -y install cpio rpm2cpio && \
+        apt-get -qq -y install wget git sudo alien curl dotnet-sdk-8.0 && \
         apt autoclean
-
-COPY    build-files/convert-rpm.sh /tmp
-
-RUN     sed "s/--no-absolute-filenames//" /usr/share/perl5/Alien/Package/Rpm.pm > /tmp/Rpm.pm
-RUN     cp /tmp/Rpm.pm /usr/share/perl5/Alien/Package/Rpm.pm
-
-RUN     /tmp/convert-rpm.sh ${SDK}
 
 RUN     dpkg --install /tmp/*.deb && \
         rm -rf /tmp/*.deb && \
@@ -25,8 +17,8 @@ ADD     ${RUNNERPATCH} /tmp/runner.patch
 RUN     cd /tmp && \
         git clone -q ${RUNNERREPO} && \
         cd runner && \
-        git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build && \
-        sed -i'' -e /version/s/6......\"$/${SDK}.0.100\"/ src/global.json && \
+        git checkout main -b build && \
+        sed -i'' -e /version/s/8......\"$/${SDK}.0.100\"/ src/global.json && \
         git apply /tmp/runner.patch
 
 RUN     cd /tmp/runner/src && \
@@ -46,7 +38,7 @@ RUN     mkdir -p /opt/runner && \
 
 RUN     apt-get -qq -y install cmake make automake autoconf m4 gcc-12-base libtool
 
-RUN     rm -rf /tmp/runner /tmp/runner.patch /tmp/convert-rpm.sh
+RUN     rm -rf /tmp/runner /tmp/runner.patch
     
 USER    ubuntu
 
