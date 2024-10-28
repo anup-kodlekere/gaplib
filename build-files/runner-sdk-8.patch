@@ -125,7 +125,7 @@ index 383ec7a..7047d01 100644
              public static readonly Architecture PlatformArchitecture = Architecture.X64;
  #endif
 diff --git a/src/Runner.Common/Runner.Common.csproj b/src/Runner.Common/Runner.Common.csproj
-index 329a024..9d37152 100644
+index 329a024..e2796ff 100644
 --- a/src/Runner.Common/Runner.Common.csproj
 +++ b/src/Runner.Common/Runner.Common.csproj
 @@ -1,12 +1,15 @@
@@ -137,7 +137,8 @@ index 329a024..9d37152 100644
      <OutputType>Library</OutputType>
      <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
 +    <SelfContained>true</SelfContained>
 +    <SelfContained Condition="'$(PackageRuntime)' == 'linux-s390x'">false</SelfContained>
@@ -193,10 +194,10 @@ index 15291be..a404a67 100644
 +#pragma warning restore CA1416
  #endif
 diff --git a/src/Runner.Listener/Runner.Listener.csproj b/src/Runner.Listener/Runner.Listener.csproj
-index 3cd72ec..5de548b 100644
+index 3cd72ec..b2bb082 100644
 --- a/src/Runner.Listener/Runner.Listener.csproj
 +++ b/src/Runner.Listener/Runner.Listener.csproj
-@@ -1,7 +1,7 @@
+@@ -1,14 +1,17 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -205,7 +206,8 @@ index 3cd72ec..5de548b 100644
      <OutputType>Exe</OutputType>
      <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-@@ -9,6 +9,9 @@
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
@@ -232,10 +234,10 @@ index 3cd72ec..5de548b 100644
  
    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.PluginHost/Runner.PluginHost.csproj b/src/Runner.PluginHost/Runner.PluginHost.csproj
-index df30f34..9ceb53a 100644
+index df30f34..48fca51 100644
 --- a/src/Runner.PluginHost/Runner.PluginHost.csproj
 +++ b/src/Runner.PluginHost/Runner.PluginHost.csproj
-@@ -1,7 +1,7 @@
+@@ -1,14 +1,17 @@
  ﻿<Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -244,7 +246,8 @@ index df30f34..9ceb53a 100644
      <OutputType>Exe</OutputType>
      <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-@@ -9,6 +9,9 @@
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
@@ -255,7 +258,7 @@ index df30f34..9ceb53a 100644
  
    <ItemGroup>
 diff --git a/src/Runner.Plugins/Runner.Plugins.csproj b/src/Runner.Plugins/Runner.Plugins.csproj
-index 39245a3..3cb4124 100644
+index 39245a3..bbd3416 100644
 --- a/src/Runner.Plugins/Runner.Plugins.csproj
 +++ b/src/Runner.Plugins/Runner.Plugins.csproj
 @@ -1,12 +1,15 @@
@@ -267,7 +270,8 @@ index 39245a3..3cb4124 100644
      <OutputType>Library</OutputType>
      <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
 +    <SelfContained>true</SelfContained>
 +    <SelfContained Condition="'$(PackageRuntime)' == 'linux-s390x'">false</SelfContained>
@@ -276,7 +280,7 @@ index 39245a3..3cb4124 100644
  
    <ItemGroup>
 diff --git a/src/Runner.Sdk/Runner.Sdk.csproj b/src/Runner.Sdk/Runner.Sdk.csproj
-index 202e866..33c7893 100644
+index 202e866..cc8a211 100644
 --- a/src/Runner.Sdk/Runner.Sdk.csproj
 +++ b/src/Runner.Sdk/Runner.Sdk.csproj
 @@ -1,12 +1,15 @@
@@ -288,7 +292,8 @@ index 202e866..33c7893 100644
      <OutputType>Library</OutputType>
      <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-     <NoWarn>NU1701;NU1603</NoWarn>
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
 +    <SelfContained>true</SelfContained>
 +    <SelfContained Condition="'$(PackageRuntime)' == 'linux-s390x'">false</SelfContained>
@@ -310,10 +315,10 @@ index 202e866..33c7893 100644
  
    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 diff --git a/src/Runner.Worker/Runner.Worker.csproj b/src/Runner.Worker/Runner.Worker.csproj
-index eee59b8..e50f338 100644
+index eee59b8..c21eef7 100644
 --- a/src/Runner.Worker/Runner.Worker.csproj
 +++ b/src/Runner.Worker/Runner.Worker.csproj
-@@ -1,7 +1,7 @@
+@@ -1,14 +1,17 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
    <PropertyGroup>
@@ -322,7 +327,8 @@ index eee59b8..e50f338 100644
      <OutputType>Exe</OutputType>
      <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
      <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-@@ -9,6 +9,9 @@
+-    <NoWarn>NU1701;NU1603</NoWarn>
++    <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
      <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
      <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
@@ -370,10 +376,10 @@ index 7cead78..5f8fb8c 100644
          public override void GetObjectData(SerializationInfo info, StreamingContext context)
          {
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index ff1cb85..b178eb4 100644
+index ff1cb85..6aa3f98 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
-@@ -1,7 +1,7 @@
+@@ -1,26 +1,29 @@
  <Project Sdk="Microsoft.NET.Sdk">
  
      <PropertyGroup>
@@ -382,7 +388,9 @@ index ff1cb85..b178eb4 100644
          <OutputType>Library</OutputType>
          <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
          <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-@@ -10,17 +10,20 @@
+-        <NoWarn>NU1701;NU1603</NoWarn>
++        <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
+         <Version>$(Version)</Version>
          <DefineConstants>TRACE</DefineConstants>
          <LangVersion>8.0</LangVersion>
          <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -495,7 +503,7 @@ index f6b5889..e78f2b7 100644
          [Trait("Level", "L0")]
          [Trait("Category", "Worker")]
 diff --git a/src/Test/Test.csproj b/src/Test/Test.csproj
-index 1beddbf..7328b7a 100644
+index 1beddbf..efd5787 100644
 --- a/src/Test/Test.csproj
 +++ b/src/Test/Test.csproj
 @@ -1,9 +1,12 @@
@@ -505,7 +513,8 @@ index 1beddbf..7328b7a 100644
 +        <TargetFramework>net8.0</TargetFramework>
          <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
          <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-         <NoWarn>NU1701;NU1603;NU1603;xUnit2013;</NoWarn>
+-        <NoWarn>NU1701;NU1603;NU1603;xUnit2013;</NoWarn>
++        <NoWarn>NU1701;NU1603;NU1603;xUnit2013;SYSLIB0050;SYSLIB0051</NoWarn>
 +        <SelfContained>true</SelfContained>
 +        <SelfContained Condition="'$(PackageRuntime)' == 'linux-s390x'">false</SelfContained>
 +        <SelfContained Condition="'$(PackageRuntime)' == 'linux-ppc64le'">false</SelfContained>
