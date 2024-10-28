@@ -32,7 +32,7 @@ build_image_in_container() {
       echo "Check the BUILD_PREREQS_PATH specification" >&2
       return 3
   fi
-  local PATCH_FILE="${PATCH_FILE:-runner-${ARCH}.patch}"
+  local PATCH_FILE="${PATCH_FILE:-runner-sdk-8.patch}"
 
   local BUILD_CONTAINER
   BUILD_CONTAINER="gha-builder-$(date +%s)"
@@ -60,12 +60,6 @@ build_image_in_container() {
   echo "Copy the build-image script into gha-builder"
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/build-image.sh" "${BUILD_CONTAINER}${BUILD_HOME}/build-image.sh"
   
-  echo "Copy the build-image script into gha-builder"
-  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-packages.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-packages.sh"
-
-  echo "Copy the build-image script into gha-builder"
-  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/supported_packages.txt" "${BUILD_CONTAINER}${BUILD_HOME}/supported_packages.txt"
-
   echo "Copy the patch file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/${PATCH_FILE} "${BUILD_CONTAINER}${BUILD_HOME}/"
 
@@ -86,9 +80,6 @@ build_image_in_container() {
   
   echo "Running build-image.sh"
   lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
-
-  echo "Running install-packages.sh"
-  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/install-packages.sh ${BUILD_HOME}/supported_packages.txt
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
@@ -127,7 +118,7 @@ prolog() {
   export SDK=""
 
   export OS_NAME="${OS_NAME:-ubuntu}"
-  export OS_VERSION="${OS_VERSION:-22.04}"
+  export OS_VERSION="${OS_VERSION:-24.10}"
   export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
   export BUILD_HOME="/home/ubuntu"
 
