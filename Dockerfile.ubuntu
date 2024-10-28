@@ -1,6 +1,6 @@
 FROM    ubuntu:24.10
 
-ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK=8 ARCH
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK_VERSION ARCH
 
 ENV     DEBIAN_FRONTEND=noninteractive
 
@@ -10,16 +10,18 @@ RUN     apt-get -qq update -y && \
 
 RUN     dpkg --install /tmp/*.deb && \
         rm -rf /tmp/*.deb && \
-        echo "Using SDK - `dotnet --version`"
+        SDK_VERSION=`dotnet --version` && \
+        echo "Using SDK - ${SDK_VERSION}"
 
 ADD     ${RUNNERPATCH} /tmp/runner.patch
 
 RUN     cd /tmp && \
         git clone -q ${RUNNERREPO} && \
         cd runner && \
-        git checkout main -b build && \
-        sed -i'' -e /version/s/8......\"$/${SDK}.0.100\"/ src/global.json && \
-        git apply /tmp/runner.patch
+        git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build  && \
+        git apply /tmp/runner.patch && \
+        sed -i'' -e /version/s/8......\"$/${SDK_VERSION}\"/ src/global.json 
+        
 
 RUN     cd /tmp/runner/src && \
         ./dev.sh layout && \

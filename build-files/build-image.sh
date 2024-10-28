@@ -25,7 +25,8 @@ update_fresh_container() {
 }
 
 setup_dotnet_sdk() {
-    echo "Using SDK - `dotnet --version`"
+    SDK_VERSION=`dotnet --version`
+    echo "Using SDK - ${SDK_VERSION}"
 
     # fix ownership
     sudo chown ubuntu:ubuntu /home/ubuntu/.bashrc
@@ -41,9 +42,9 @@ patch_runner() {
     cd /tmp
     git clone -q ${RUNNERREPO}
     cd runner
-    git checkout main -b build 
+    git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build 
     git apply /home/ubuntu/runner-sdk-8.patch
-    sed -i'' -e /version/s/8......\"$/8.0.100\"/ src/global.json
+    sed -i'' -e /version/s/8......\"$/${SDK_VERSION}\"/ src/global.json
     return $?
 }
 
