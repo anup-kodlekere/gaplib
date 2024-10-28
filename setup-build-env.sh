@@ -116,6 +116,19 @@ run() {
   return $?
 }
 
+select_ubuntu_version() {
+  case "$ARCH" in
+    ppc64le)
+      export OS_VERSION="22.04"
+      ;;
+    s390x)
+      export OS_VERSION="24.10"
+      ;;
+    *)
+      export OS_VERSION="24.10" # Default version for other architectures
+      ;;
+  esac
+}
 prolog() {
   export PATH=/snap/bin:${PATH}
   export SOURCE=$(readlink -f ${BASH_SOURCE[0]})
@@ -127,9 +140,10 @@ prolog() {
   export SDK=""
 
   export OS_NAME="${OS_NAME:-ubuntu}"
-  export OS_VERSION="${OS_VERSION:-24.10}"
   export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
   export BUILD_HOME="/home/ubuntu"
+
+  select_ubuntu_version "$@"
 
   mkdir -p distro
 
