@@ -661,10 +661,10 @@ index 71c8063..aac43b0 100755
  dotnet --version
  
 diff --git a/src/dir.proj b/src/dir.proj
-index 056a312..f188c9c 100644
+index 056a312..649d538 100644
 --- a/src/dir.proj
 +++ b/src/dir.proj
-@@ -41,13 +41,24 @@
+@@ -41,13 +41,22 @@
      </ItemGroup>
  
      <Target Name="Build" DependsOnTargets="GenerateConstant">
@@ -677,10 +677,8 @@ index 056a312..f188c9c 100644
 +                 Perform a non-self-contained publish using the current runtime identifier instead.
 +                 In addition, when not using an explicit runtime identifier, the SDK will copy runtime assets from dependent packages;
 +                 as this would confuse the expected layout, disable that behavior as well.  -->
-+            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le' Or '$(PackageRuntime)' == 'linux-s390x'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier>
-+            
++            <PublishRuntimeIdentifier Condition="'$(PackageRuntime)' == 'linux-ppc64le' Or '$(PackageRuntime)' == 'linux-s390x'">SelfContained=false;CopyLocalRuntimeTargetAssets=false</PublishRuntimeIdentifier> 
 +        </PropertyGroup>
-+
 +        <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" Properties="$(PublishRuntimeIdentifier)" />
 +        <MSBuild Targets="Publish" Projects="@(ProjectFiles)" BuildInParallel="false" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);Version=$(RunnerVersion);$(PublishRuntimeIdentifier);PublishDir=$(MSBuildProjectDirectory)/../_layout/bin" />
          <Exec Command="%22$(DesktopMSBuild)%22 Runner.Service/Windows/RunnerService.csproj /p:Configuration=$(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:OutputPath=%22$(MSBuildProjectDirectory)/../_layout/bin%22" ConsoleToMSBuild="true" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86' Or '$(PackageRuntime)' == 'win-arm64'" />
