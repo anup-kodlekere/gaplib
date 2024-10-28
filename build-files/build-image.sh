@@ -133,10 +133,10 @@ shift $(( OPTIND - 1 ))
 if [ -z "${SDK}" ]; then
     case ${ARCH} in
         ppc64le)
-            SDK=7
+            SDK=8
             ;;
         s390x)
-            SDK=6
+            SDK=8
             ;;
     esac
 fi
