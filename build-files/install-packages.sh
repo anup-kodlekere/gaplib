@@ -1,4 +1,10 @@
 #!/bin/bash
+header() {
+    echo "+--------------------------------------------+"
+    echo "| $*"
+    echo "+--------------------------------------------+"
+    echo
+}
 
 # Check if the file name is provided
 if [ -z "$1" ]; then
@@ -13,7 +19,7 @@ if [ ! -f "$PACKAGE_LIST_FILE" ]; then
     echo "File $PACKAGE_LIST_FILE not found!"
     exit 1
 fi
-
+header "Installing additional packages"
 # Update the package list
 echo "Updating package list..."
 sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update -y
