@@ -1,10 +1,15 @@
 #!/bin/bash
 
 header() {
-    echo "+--------------------------------------------+"
-    echo "| $*"
-    echo "+--------------------------------------------+"
+    TS=`date +"%Y-%m-%dT%H:%M:%S%:z"`
+    echo "${TS} +--------------------------------------------+"
+    echo "${TS} | $*"
+    echo "${TS} +--------------------------------------------+"
     echo
+}
+
+msg() {
+    echo `date +"%Y-%m-%dT%H:%M:%S%:z"` $*
 }
 
 update_fresh_container() {
@@ -17,15 +22,15 @@ update_fresh_container() {
     fi
     sudo apt autoclean
 
-    echo "Initializing LXD environment"
+    msg "Initializing LXD environment"
     sudo lxd init --preseed </tmp/lxd-preseed.yaml
 
-    echo "Make sure we have lxd authority"
+    msg "Make sure we have lxd authority"
     sudo usermod -G lxd -a ubuntu
 }
 
 setup_dotnet_sdk() {
-    echo "Using SDK - `dotnet --version`"
+    msg "Using SDK - `dotnet --version`"
 
     # fix ownership
     sudo chown ubuntu:ubuntu /home/ubuntu/.bashrc
@@ -52,17 +57,17 @@ build_runner() {
     header "Building runner binary"
     cd src
 
-    echo "dev layout"
+    msg "dev layout"
     ./dev.sh layout
 
     if [ $? -eq 0 ]; then
-        echo "dev package"
+        msg "dev package"
         ./dev.sh package 
 
         if [ $? -eq 0 ]; then
-            echo "Finished building runner binary"
+            msg "Finished building runner binary"
 
-            echo "Running tests"
+            msg "Running tests"
             ./dev.sh test
         fi
     fi
@@ -77,13 +82,12 @@ install_runner() {
     if [ $? -eq 0 ]; then
         sudo chown ubuntu:ubuntu -R /opt/runner
         /opt/runner/config.sh --version
-        #TODO: Verify that the version is the _actual_ latest runner
     fi
     return $?
 }
 
 cleanup() {
-    rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-${ARCH}.patch \
+    rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-sdk-8.patch \
            /tmp/runner /tmp/preseed-yaml
 }
 
@@ -127,18 +131,5 @@ do
 done
 shift $(( OPTIND - 1 ))
 
-if [ -z "${SDK}" ]; then
-    case ${ARCH} in
-        ppc64le)
-            SDK=7
-            ;;
-        s390x)
-            SDK=6
-            ;;
-    esac
-fi
-
 run "$@"
 exit $?
-
-
