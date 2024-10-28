@@ -15,10 +15,14 @@ usage() {
     exit
 }
 
+msg() {
+    echo `date +"%Y-%m-%dT%H:%M:%S%:z"` $*
+}
+
 ensure_lxd() {
   if ! command -v lxc version &> /dev/null
   then
-    echo "LXD could not be found. Please ensure LXD exists."
+    msg "LXD could not be found. Please ensure LXD exists."
     exit 1
   fi
 }
@@ -29,7 +33,7 @@ build_image_in_container() {
 
   local BUILD_PREREQS_PATH="${SRCDIR}/build-files"
   if [ ! -d "${BUILD_PREREQS_PATH}" ]; then
-      echo "Check the BUILD_PREREQS_PATH specification" >&2
+      msg "Check the BUILD_PREREQS_PATH specification" >&2
       return 3
   fi
   local PATCH_FILE="${PATCH_FILE:-runner-sdk-8.patch}"
@@ -37,7 +41,7 @@ build_image_in_container() {
   local BUILD_CONTAINER
   BUILD_CONTAINER="gha-builder-$(date +%s)"
 
-  echo "Launching build container ${LXD_CONTAINER}"
+  msg "Launching build container ${LXD_CONTAINER}"
   lxc launch "${LXD_CONTAINER}" "${BUILD_CONTAINER}" 
   lxc ls
   
@@ -52,48 +56,48 @@ build_image_in_container() {
   done
 
   if [ -z "${CHECK}" ]; then
-      echo "Unable to start the build container" >&2
+      msg "Unable to start the build container" >&2
       lxc delete -f ${BUILD_CONTAINER}
       return 2
   fi
 
-  echo "Copy the build-image script into gha-builder"
+  msg "Copy the build-image script into gha-builder"
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/build-image.sh" "${BUILD_CONTAINER}${BUILD_HOME}/build-image.sh"
   
-  echo "Copy the patch file into gha-builder"
+  msg "Copy the patch file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/${PATCH_FILE} "${BUILD_CONTAINER}${BUILD_HOME}/"
 
-  echo "Copy the register-runner.sh script into gha-builder"
+  msg "Copy the register-runner.sh script into gha-builder"
   lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/register-runner.sh "${BUILD_CONTAINER}/opt/register-runner.sh"
   
-  echo "Copy the /etc/rc.local - required in case podman is used"
+  msg "Copy the /etc/rc.local - required in case podman is used"
   lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/rc.local "${BUILD_CONTAINER}/etc/rc.local"
   
-  echo "Copy the LXD preseed configuration"
+  msg "Copy the LXD preseed configuration"
   lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/lxd-preseed.yaml "${BUILD_CONTAINER}/tmp/lxd-preseed.yaml"
   
-  echo "Copy the gha-service unit file into gha-builder"
+  msg "Copy the gha-service unit file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/gha-runner.service "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service"
 
-  echo "Setting user ubuntu with sudo privileges"
+  msg "Setting user ubuntu with sudo privileges"
   lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo"
   
-  echo "Running build-image.sh"
+  msg "Running build-image.sh"
   lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
       # Until we are at lxc >= 5.19 we can't use the --reuse option on the publish command
-      echo "Deleting old image"
+      msg "Deleting old image"
       lxc image delete ${IMAGE_ALIAS} 2>/dev/null
 
-      echo "Runner build complete. Creating image snapshot."
+      msg "Runner build complete. Creating image snapshot."
       lxc publish "${BUILD_CONTAINER}" -f --alias "${IMAGE_ALIAS}" description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
   
-      echo "Export the image to ${EXPORT} for use elsewhere"
+      msg "Export the image to ${EXPORT} for use elsewhere"
       lxc image export "${IMAGE_ALIAS}" ${EXPORT}
   else
-      echo "Build process failed with RC: $? - review log to determine cause of failure" >&2
+      msg "Build process failed with RC: $? - review log to determine cause of failure" >&2
   fi
 
   lxc delete -f "${BUILD_CONTAINER}"
@@ -126,7 +130,7 @@ prolog() {
 
   X=`groups | grep -q lxd`
   if [ $? -eq 1 ]; then
-      echo "Setting permissions"
+      msg "Setting permissions"
       sudo chmod 0666 /var/snap/lxd/common/lxd/unix.socket
   fi
 }
