@@ -5,7 +5,6 @@ make
 maven
 mediainfo
 mercurial
-microsoft-edge-stable
 mysql-client
 mysql-server
 ncurses-base
