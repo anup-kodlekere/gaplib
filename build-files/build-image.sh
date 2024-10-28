@@ -44,7 +44,9 @@ patch_runner() {
     cd runner
     git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build 
     git apply /home/ubuntu/runner-sdk-8.patch
-    sed -i'' -e /version/s/8......\"$/${SDK_VERSION}\"/ src/global.json
+    sed -i'' -e 's/"version": "8[^"]*"/"version": "'${SDK_VERSION}'"/' src/global.json
+    sed -i'' -e 's/"version": "8[^"]*"/"version": "'${SDK_VERSION}'"/' .devcontainer/devcontainer.json
+    sed -i'' -e 's/DOTNETSDK_VERSION="8[^"]*"/DOTNETSDK_VERSION="'${SDK_VERSION}'"/' src/dev.sh
     return $?
 }
 
