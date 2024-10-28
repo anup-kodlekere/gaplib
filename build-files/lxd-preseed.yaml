@@ -1,5 +1,4 @@
 config: {}
-cluster: null
 networks:
 - config:
     ipv4.address: auto
@@ -7,22 +6,24 @@ networks:
   description: "gaplib network"
   name: lxdbr0
   type: ""
+  project: default
 storage_pools:
-- config: {}
+- config:
+    size: 90GiB
   description: "gaplib storage pool"
   name: default
-  driver: dir
+  driver: lvm
 profiles:
 - config: {}
   description: "gaplib"
   devices:
     eth0:
       name: eth0
-      nictype: bridged
-      parent: lxdbr0
+      network: lxdbr0
       type: nic
     root:
       path: /
       pool: default
       type: disk
   name: default
+cluster: null
