@@ -138,12 +138,12 @@ prolog() {
   export ACTION_RUNNER="https://github.com/actions/runner"
   export EXPORT="distro/lxc-runner"
   export SDK=""
-
   export OS_NAME="${OS_NAME:-ubuntu}"
-  export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
   export BUILD_HOME="/home/ubuntu"
 
   select_ubuntu_version "$@"
+
+  export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
 
   mkdir -p distro
 
