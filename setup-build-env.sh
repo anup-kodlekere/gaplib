@@ -64,6 +64,12 @@ build_image_in_container() {
   msg "Copy the build-image script into gha-builder"
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/build-image.sh" "${BUILD_CONTAINER}${BUILD_HOME}/build-image.sh"
   
+  msg "Copy the build-image script into gha-builder"
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-packages.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-packages.sh"
+
+  msg "Copy the build-image script into gha-builder"
+  lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/supported_packages.txt" "${BUILD_CONTAINER}${BUILD_HOME}/supported_packages.txt"
+
   msg "Copy the patch file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/${PATCH_FILE} "${BUILD_CONTAINER}${BUILD_HOME}/"
 
@@ -84,6 +90,9 @@ build_image_in_container() {
   
   msg "Running build-image.sh"
   lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
+
+  msg "Running install-packages.sh"
+  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/install-packages.sh ${BUILD_HOME}/supported_packages.txt
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
@@ -111,6 +120,19 @@ run() {
   return $?
 }
 
+select_ubuntu_version() {
+  case "$ARCH" in
+    ppc64le)
+      export OS_VERSION="22.04"
+      ;;
+    s390x)
+      export OS_VERSION="24.10"
+      ;;
+    *)
+      export OS_VERSION="24.10" # Default version for other architectures
+      ;;
+  esac
+}
 prolog() {
   export PATH=/snap/bin:${PATH}
   export SOURCE=$(readlink -f ${BASH_SOURCE[0]})
@@ -120,11 +142,12 @@ prolog() {
   export ACTION_RUNNER="https://github.com/actions/runner"
   export EXPORT="distro/lxc-runner"
   export SDK=""
-
   export OS_NAME="${OS_NAME:-ubuntu}"
-  export OS_VERSION="${OS_VERSION:-24.10}"
-  export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
   export BUILD_HOME="/home/ubuntu"
+
+  select_ubuntu_version "$@"
+
+  export LXD_CONTAINER="${OS_NAME}:${OS_VERSION}"
 
   mkdir -p distro
 
