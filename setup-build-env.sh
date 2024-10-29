@@ -92,10 +92,17 @@ build_image_in_container() {
       lxc image delete ${IMAGE_ALIAS} 2>/dev/null
 
       msg "Runner build complete. Creating image snapshot."
-      lxc publish "${BUILD_CONTAINER}" -f --alias "${IMAGE_ALIAS}" description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
+      lxc snapshot "${BUILD_CONTAINER}" "build-snapshot"
+      lxc publish "${BUILD_CONTAINER}/build-snapshot" -f --alias "${IMAGE_ALIAS}" \
+            --compression none \
+            description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
   
       msg "Export the image to ${EXPORT} for use elsewhere"
       lxc image export "${IMAGE_ALIAS}" ${EXPORT}
+
+      msg "Priming the filesystem by launching the newly built container"
+      lxc launch "${IMAGE_ALIAS}" "primer"
+      lxc rm -f primer
   else
       msg "Build process failed with RC: $? - review log to determine cause of failure" >&2
   fi
