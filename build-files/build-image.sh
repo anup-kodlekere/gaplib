@@ -31,7 +31,8 @@ update_fresh_container() {
 }
 
 setup_dotnet_sdk() {
-    msg "Using SDK - `dotnet --version`"
+    SDK_VERSION=`dotnet --version`
+    msg "Using SDK - ${SDK_VERSION}"
 
     # fix ownership
     sudo chown ubuntu:ubuntu /home/ubuntu/.bashrc
@@ -47,9 +48,11 @@ patch_runner() {
     cd /tmp
     git clone -q ${RUNNERREPO}
     cd runner
-    git checkout main -b build 
+    git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build 
     git apply /home/ubuntu/runner-sdk-8.patch
-    sed -i'' -e /version/s/8......\"$/8.0.100\"/ src/global.json
+    sed -i'' -e 's/"version": "8[^"]*"/"version": "'${SDK_VERSION}'"/' src/global.json
+    sed -i'' -e 's/"version": "8[^"]*"/"version": "'${SDK_VERSION}'"/' .devcontainer/devcontainer.json
+    sed -i'' -e 's/DOTNETSDK_VERSION="8[^"]*"/DOTNETSDK_VERSION="'${SDK_VERSION}'"/' src/dev.sh
     return $?
 }
 
@@ -131,6 +134,17 @@ do
     esac
 done
 shift $(( OPTIND - 1 ))
+
+if [ -z "${SDK}" ]; then
+    case ${ARCH} in
+        ppc64le)
+            SDK=8
+            ;;
+        s390x)
+            SDK=8
+            ;;
+    esac
+fi
 
 run "$@"
 exit $?
