@@ -1,9 +1,14 @@
 #!/bin/bash
 header() {
-    echo "+--------------------------------------------+"
-    echo "| $*"
-    echo "+--------------------------------------------+"
+    TS=`date +"%Y-%m-%dT%H:%M:%S%:z"`
+    echo "${TS} +--------------------------------------------+"
+    echo "${TS} | $*"
+    echo "${TS} +--------------------------------------------+"
     echo
+}
+
+msg() {
+    echo `date +"%Y-%m-%dT%H:%M:%S%:z"` $*
 }
 
 # Check if the file name is provided
@@ -21,7 +26,7 @@ if [ ! -f "$PACKAGE_LIST_FILE" ]; then
 fi
 header "Installing additional packages"
 # Update the package list
-echo "Updating package list..."
+msg "Updating package list..."
 sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update -y
 
 # installing docker
@@ -52,4 +57,4 @@ while IFS= read -r package || [ -n "$package" ]; do
     fi
 done < "$PACKAGE_LIST_FILE"
 
-echo "All packages from $PACKAGE_LIST_FILE have been installed."
+msg "All packages from $PACKAGE_LIST_FILE have been installed."

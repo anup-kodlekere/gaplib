@@ -1,15 +1,14 @@
-FROM    ubuntu:24.10
+FROM    ubuntu:22.04
 
 ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK_VERSION ARCH
 
 ENV     DEBIAN_FRONTEND=noninteractive
 
 RUN     apt-get -qq update -y && \
-        apt-get -qq -y install wget git sudo alien curl dotnet-sdk-8.0 && \
+        apt-get -qq -y install wget git sudo alien curl && \
         apt autoclean
 
-RUN     dpkg --install /tmp/*.deb && \
-        rm -rf /tmp/*.deb && \
+RUN     apt-get -qq -y install dotnet-sdk-8.0  && \
         SDK_VERSION=`dotnet --version` && \
         echo "Using SDK - ${SDK_VERSION}"
 
