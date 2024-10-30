@@ -67,7 +67,7 @@ build_image_in_container() {
   msg "Copy the build-image script into gha-builder"
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/install-packages.sh" "${BUILD_CONTAINER}${BUILD_HOME}/install-packages.sh"
 
-  msg "Copy the build-image script into gha-builder"
+  msg "Copy the supported packages list into the gha-builder"
   lxc file push --mode 0755 "${BUILD_PREREQS_PATH}/supported_packages.txt" "${BUILD_CONTAINER}${BUILD_HOME}/supported_packages.txt"
 
   msg "Copy the patch file into gha-builder"
@@ -84,6 +84,10 @@ build_image_in_container() {
   
   msg "Copy the gha-service unit file into gha-builder"
   lxc file push ${BUILD_PREREQS_PATH}/gha-runner.service "${BUILD_CONTAINER}/etc/systemd/system/gha-runner.service"
+
+  msg "Copy the apt and dpkg overrides into gha-builder - these prevent doc files from being installed"
+  lxc file push --mode 0644 "${BUILD_PREREQS_PATH}/99synaptics" "${BUILD_CONTAINER}/etc/apt/apt.conf.d/99synaptics"
+  lxc file push --mode 0644 "${BUILD_PREREQS_PATH}/01_nodoc" "${BUILD_CONTAINER}/etc/dpk/dpkg.cfg.d/01_nodoc"
 
   msg "Setting user ubuntu with sudo privileges"
   lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo"
@@ -103,7 +107,6 @@ build_image_in_container() {
       msg "Runner build complete. Creating image snapshot."
       lxc snapshot "${BUILD_CONTAINER}" "build-snapshot"
       lxc publish "${BUILD_CONTAINER}/build-snapshot" -f --alias "${IMAGE_ALIAS}" \
-            --compression none \
             description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
   
       msg "Export the image to ${EXPORT} for use elsewhere"

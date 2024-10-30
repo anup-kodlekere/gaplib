@@ -27,34 +27,27 @@ fi
 header "Installing additional packages"
 # Update the package list
 msg "Updating package list..."
-sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update -y
-
-# installing docker
-for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
-
-# Add Docker's official GPG key:
-sudo DEBIAN_FRONTEND=noninteractive apt-get update -y 
-sudo DEBIAN_FRONTEND=noninteractive apt-get install ca-certificates curl -y
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
-
-sudo DEBIAN_FRONTEND=noninteractive apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get update -y >/dev/null
 
 # Read the file line by line and install each package
+OK=`true`
 while IFS= read -r package || [ -n "$package" ]; do
     if [[ ! -z "$package" && "$package" != \#* ]]; then
         echo "Installing $package..."
-        sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install -y "$package"
+        sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install -y "$package" >/dev/null
+        if [ $? -ne 0 ]; then
+            OK=`false`
+        fi
         sudo dpkg --configure -a
     fi
 done < "$PACKAGE_LIST_FILE"
 
-msg "All packages from $PACKAGE_LIST_FILE have been installed."
+if [ ${OK} ]; then
+    msg "All packages from $PACKAGE_LIST_FILE have been installed."
+else
+    msg "NOT all packages from $PACKAGE_LIST_FILE have been installed - check log."
+fi
+
+# Removing the packaging cache
+sudo rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
+sudo apt-get clean
