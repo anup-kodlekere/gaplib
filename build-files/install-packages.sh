@@ -57,4 +57,8 @@ while IFS= read -r package || [ -n "$package" ]; do
     fi
 done < "$PACKAGE_LIST_FILE"
 
+# Removing the packaging cache
+sudo rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
+sudo apt-get clean
+
 msg "All packages from $PACKAGE_LIST_FILE have been installed."
