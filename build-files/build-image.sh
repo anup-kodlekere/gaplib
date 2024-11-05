@@ -92,7 +92,8 @@ install_runner() {
 
 cleanup() {
     rm -rf /home/ubuntu/build-image.sh /home/ubuntu/runner-sdk-8.patch \
-           /tmp/runner /tmp/preseed-yaml
+           /tmp/runner /tmp/preseed-yaml /home/ubuntu/.nuget \
+           /home/ubuntu/.local/share
 }
 
 run() {
