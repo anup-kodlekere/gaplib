@@ -8,9 +8,6 @@ usage() {
     echo "                             defaults to ${ACTION_RUNNER}"
     echo "-o <exported image>          Path to exported image"
     echo "                             defaults to ${EXPORT}"
-    echo "-s <SDK level>               .NET SDK level"
-    echo "                             - Defaults to value in build script for ppc64le"
-    echo "                             - Ignored for s390x which uses an RPM"
     echo "-h                           Display this usage information"
     exit
 }
@@ -93,13 +90,13 @@ build_image_in_container() {
   lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo"
   
   msg "Running build-image.sh"
-  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER} ${SDK}
-
-  msg "Running install-packages.sh"
-  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/install-packages.sh ${BUILD_HOME}/supported_packages.txt
+  lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/build-image.sh -a ${ACTION_RUNNER}
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
+      msg "Running install-packages.sh"
+      lxc exec "${BUILD_CONTAINER}" --user 1000 --group 1000 -- ${BUILD_HOME}/install-packages.sh ${BUILD_HOME}/supported_packages.txt
+
       # Until we are at lxc >= 5.19 we can't use the --reuse option on the publish command
       msg "Deleting old image"
       lxc image delete ${IMAGE_ALIAS} 2>/dev/null
@@ -107,6 +104,7 @@ build_image_in_container() {
       msg "Runner build complete. Creating image snapshot."
       lxc snapshot "${BUILD_CONTAINER}" "build-snapshot"
       lxc publish "${BUILD_CONTAINER}/build-snapshot" -f --alias "${IMAGE_ALIAS}" \
+            --compression none \
             description="GitHub Actions ${OS_NAME} ${OS_VERSION} Runner for ${ARCH}"
   
       msg "Export the image to ${EXPORT} for use elsewhere"
@@ -116,7 +114,7 @@ build_image_in_container() {
       lxc launch "${IMAGE_ALIAS}" "primer"
       lxc rm -f primer
   else
-      msg "Build process failed with RC: $? - review log to determine cause of failure" >&2
+      msg "Build process failed with RC: ${RC} - review log to determine cause of failure" >&2
   fi
 
   lxc delete -f "${BUILD_CONTAINER}"
@@ -151,7 +149,6 @@ prolog() {
   export ARCH=`uname -m`
   export ACTION_RUNNER="https://github.com/actions/runner"
   export EXPORT="distro/lxc-runner"
-  export SDK=""
   export OS_NAME="${OS_NAME:-ubuntu}"
   export BUILD_HOME="/home/ubuntu"
 
@@ -169,7 +166,7 @@ prolog() {
 }
 
 prolog
-while getopts "a:o:hs:" opt
+while getopts "a:o:h:" opt
 do
     case "${opt}" in
         a)
@@ -180,9 +177,6 @@ do
             ;;
         h)
             usage
-            ;;
-        s)
-            SDK="-s ${OPTARG}"
             ;;
         *)
             usage

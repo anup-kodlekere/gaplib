@@ -41,11 +41,29 @@ sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
+# Required until docker repo for oracular has ppc64le binaries
+case `uname -m` in
+    ppc64le)
+        REPO="noble"
+        ;;
+    s390x)
+        REPO=$(. /etc/os-release && echo "$VERSION_CODENAME")
+        ;;
+esac
+
 # Add the repository to Apt sources:
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  ${REPO} stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list
+
+# Activate the docker repo via update
+sudo DEBIAN_FRONTEND=noninteractive apt-get update -y >/dev/null
+
+# Install the docker suite
+msg "Installing docker..."
+sudo DEBIAN_FRONTEND=noninteractive apt-get install docker-ce docker-ce-cli \
+    containerd.io docker-buildx-plugin docker-compose-plugin -y >/dev/null
 
 # Read the file line by line and install each package
 OK=`true`

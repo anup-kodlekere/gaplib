@@ -7,13 +7,11 @@ networks:
   description: "gaplib network"
   name: lxdbr0
   type: ""
-  project: default
 storage_pools:
-- config:
-    size: 90GiB
+- config: {}
   description: "gaplib storage pool"
   name: default
-  driver: lvm
+  driver: dir
 profiles:
 - config: {}
   description: "gaplib"
