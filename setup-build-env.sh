@@ -87,7 +87,7 @@ build_image_in_container() {
 
   msg "Copy the apt and dpkg overrides into gha-builder - these prevent doc files from being installed"
   lxc file push --mode 0644 "${BUILD_PREREQS_PATH}/99synaptics" "${BUILD_CONTAINER}/etc/apt/apt.conf.d/99synaptics"
-  lxc file push --mode 0644 "${BUILD_PREREQS_PATH}/01_nodoc" "${BUILD_CONTAINER}/etc/dpk/dpkg.cfg.d/01_nodoc"
+  lxc file push --mode 0644 "${BUILD_PREREQS_PATH}/01-nodoc" "${BUILD_CONTAINER}/etc/dpkg/dpkg.cfg.d/01-nodoc"
 
   msg "Setting user ubuntu with sudo privileges"
   lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo"

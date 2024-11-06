@@ -75,7 +75,6 @@ pipx
 pkg-config
 podman
 podman-compose
-podman-docker
 podman-remote
 podman-toolbox
 pollinate
