@@ -4,6 +4,10 @@ ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK_VERSION A
 
 ENV     DEBIAN_FRONTEND=noninteractive
 
+COPY    build-files/99synaptics /etc/apt/apt.conf.d/
+
+COPY    build-files/01-nodoc /etc/dpkg/dpkg.cfg.d/
+
 RUN     apt-get -qq update -y && \
         apt-get -qq -y install wget git sudo curl dotnet-sdk-8.0 && \
         apt autoclean
@@ -15,11 +19,9 @@ ADD     ${RUNNERPATCH} /tmp/runner.patch
 RUN     cd /tmp && \
         git clone -q ${RUNNERREPO} && \
         cd runner && \
-        git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -b build  && \
+        git checkout main -b build && \
         git apply /tmp/runner.patch && \
-        sed -i'' -e 's/"version": "8[^"]*"/"version": "'${SDK_VERSION}'"/' src/global.json && \
-        sed -i'' -e 's/"version": "8[^"]*"/"version": "'${SDK_VERSION}'"/' .devcontainer/devcontainer.json && \
-        sed -i'' -e 's/DOTNETSDK_VERSION="8[^"]*"/DOTNETSDK_VERSION="'${SDK_VERSION}'"/' src/dev.sh
+        sed -i'' -e /version/s/8......\"$/${SDK}.0.100\"/ src/global.json
         
 
 RUN     cd /tmp/runner/src && \
@@ -28,8 +30,7 @@ RUN     cd /tmp/runner/src && \
         ./dev.sh test && \
         rm -rf /root/.dotnet /root/.nuget
 
-RUN     useradd -c "Action Runner" -m ubuntu && \
-        usermod -L ubuntu && \
+RUN     usermod -L ubuntu && \
         echo "ubuntu  ALL=(ALL)       NOPASSWD: ALL" >/etc/sudoers.d/ubuntu
 
 RUN     mkdir -p /opt/runner && \

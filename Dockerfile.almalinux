@@ -2,6 +2,8 @@ FROM    almalinux:9
 
 ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK=8 SDK_VERSION ARCH
 
+RUN     echo "tsflags=nodocs" >>/etc/dnf/dnf.conf
+
 RUN     dnf update -y -q && \
         dnf install -y -q wget git which langpacks-en glibc-all-langpacks sudo
         
@@ -36,7 +38,7 @@ RUN     mkdir -p /opt/runner && \
 
 RUN     dnf install -y -q cmake make automake autoconf m4 gcc gcc-c++ libtool epel-release
 
-RUN     rm -rf /tmp/runner /var/cache/dnf/* /tmp/runner.patch && \
+RUN     rm -rf /tmp/runner /var/cache/dnf/* /tmp/runner.patch \
         dnf clean all
     
 USER    almalinux
