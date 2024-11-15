@@ -26,7 +26,7 @@ ensure_lxd() {
 
 build_image_in_container() {
   
-  local IMAGE_ALIAS="${IMAGE_ALIAS:-${OS_NAME}-${OS_VERSION}-${ARCH}}"
+  local IMAGE_ALIAS="${IMAGE_ALIAS:-${OS_NAME}-latest-${ARCH}}"
 
   local BUILD_PREREQS_PATH="${SRCDIR}/build-files"
   if [ ! -d "${BUILD_PREREQS_PATH}" ]; then
