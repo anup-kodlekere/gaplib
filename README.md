@@ -1,234 +1,145 @@
-# gaplib
-GitHub Actions on Power and Z OCI and LXD Image Build
-- [gaplib](#gaplib)
-  - [What is it](#what-is-it)
-  - [Building](#building)
-    - [LXD Image used by Actions Runner](#lxd-image-used-by-actions-runner)
-      - [Pre-reqs](#pre-reqs)
-      - [Running Build](#running-build)
-    - [OCI Image used as Self-Hosted Action Runner](#oci-image-used-as-self-hosted-action-runner)
-      - [Pre-reqs](#pre-reqs-1)
-      - [Building Images](#building-images)
-  - [Using](#using)
-    - [LXD-based](#lxd-based)
-    - [Self-Hosted](#self-hosted)
-      - [Configuring](#configuring)
-        - [Sample Build](#sample-build)
-      - [Running](#running)
-        - [Sample Run](#sample-run)
+# **GapLib**
 
-## What is it
-Simple automation pipeline to build: 
-1. LXD images for custom github actions runner whenever actions/runner creates a new release.
-2. OCI images for a self-hosted github actions runner
+GapLib is a robust collection of setup scripts for configuring custom GitHub Actions runners. These scripts are designed to seamlessly adapt to updates in `actions/runner`, ensuring compatibility and optimal performance across diverse environments, including **VM (host machine)**, **LXD**, **Docker**, and **Podman**.
 
-## Building
+This repository also includes source code to create VM images for GitHub-hosted runners widely used in Actions workflows. GapLib supports multiple operating systems and architectures, providing a versatile and scalable solution to meet diverse project requirements.
 
-Instructions for building both the LXD-based and self-hosted actions runners.
 
-### LXD Image used by Actions Runner
+## **Table of Contents**
 
-Use these instructions to build the component required by the github-hosted actions runner.
+- [Overview](#overview)
+    - [Supported Environments](#supported-environments)
+    - [Supported Architectures](#supported-architectures)
+    - [Supported Operating Systems](#supported-operating-systems)
+- [Scripts](#scripts)
+    - [run.sh](#runsh)
+    - [Key Features](#key-features)
+- [Usage](#usage)
+- [Setup Options](#setup-options)
+    - [Main Menu](#main-menu)
+    - [OS and Version Selection](#os-and-version-selection)
+    - [Minimal or Complete Setup](#minimal-or-complete-setup)
+    - [Unsupported Architectures](#unsupported-architectures)
+- [Requirements](#requirements)
+- [Contributing](#contributing)
 
-#### Pre-reqs
+---
 
-1. lxd
-  - Install lxd either via snap `snap install lxd --classic` or, under Ubuntu, as package in the repo
-  - Initialize lxd via `lxd init` and answer the prompts according to your preferences. For example,
-    create a file `lxd-preseed.yaml` containing:
+## **Overview**
+
+### **Supported Environments**
+
+GapLib supports multiple environments for seamless runner setup:
+
+- **VM (host machine)**: Direct setup on virtual or host machines.
+- **LXD**: Lightweight container-based virtualization.
+- **Docker**: Industry-standard containerization platform.
+- **Podman**: Docker-compatible, daemonless container management.
+
+### **Supported Architectures**
+
+- **ppc64le**
+- **s390x**
+- **x86_64**
+
+### **Supported Operating Systems**
+
+- **Ubuntu**: Versions 22.04, 24.04, and 24.10.
+- **CentOS**: Version 9.
+
+---
+
+## **Scripts**
+
+### **run.sh**
+
+`run.sh` is the primary script for setting up GitHub Actions runners. It provides an interactive, menu-driven interface for selecting environments, operating systems, versions, and setup types.
+
+### **Key Features**
+
+- **Interactive Menu**: Guides users through setup options (VM, LXD, Docker, or Podman).
+- **Architecture Detection**: Ensures compatibility with supported architectures.
+- **Custom OS and Version Selection**: Allows users to tailor setup to specific environments.
+- **Setup Type Options**: Supports **Minimal** (basic setup) and **Complete** (full setup) configurations.
+
+---
+
+## **Usage**
+
+1. Clone the repository:
+    
+    
+2. Execute the setup script:
+    
+    ```bash
+    bash run.sh
+    
     ```
-    config: {}
-    cluster: null
-    networks:
-    - config:
-        ipv4.address: auto
-        ipv6.address: auto
-      description: "gaplib network"
-      name: lxdbr0
-      type: ""
-    storage_pools:
-    - config: {}
-      description: "gaplib storage pool"
-      name: default
-      driver: dir
-    profiles:
-    - config: {}
-      description: "gaplib"
-      devices:
-        eth0:
-          name: eth0
-          nictype: bridged
-          parent: lxdbr0
-          type: nic
-        root:
-          path: /
-          pool: default
-          type: disk
-      name: default
-    ```
-    Run the command `lxd init --preseed <lxd-preseed.yaml`
+    
+3. Follow the prompts to:
+    - Select your environment (**VM**, **LXD**, **Docker**, or **Podman**).
+    - Choose your OS and version.
+    - Specify the setup type (**Minimal** or **Complete**).
 
-#### Running Build
+---
 
-To build the github actions execute the `setup-build-env.sh` script
+## **Setup Options**
 
-### OCI Image used as Self-Hosted Action Runner
+### **Main Menu**
 
-A self-hosted runner is a system that you deploy and manage to execute jobs from GitHub Actions on GitHub.com.
-
-See the github documentation on [self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners).
-In particular:
-* [Adding a self-hosted runner](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners)
-* [Using self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/using-self-hosted-runners-in-a-workflow)
-* [Hardening your self-hosted runner](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners)
-
-#### Pre-reqs
-1. docker or podman
-
-#### Building Images
-
-Run `./build-selfhosted.sh [-b <buildtool>] [distro ...]`
-
-Where 
-* `-b <buildtool>` defaults to whichever out of `podman` or `docker` it finds. You may override by specifying either of these tools.
-* `[distro ...]` is either `ubunutu`, `almalinux`, or `opensuse`. If nothing specified then all are built
-
-## Using
-
-For both modes of running actions runners, there may be firewall changes required to allow github to communicate with the runner. For example, if the LXD-based system is listening on port 5000 then on a RHEL-like system:
-```
-firewall-cmd --add-port=5000/tcp
-```
-Similarly, if you have one or more self-hosted actions runners then each may be defined on github to connect on a different port which is then mapped by the OCI runtime to port 443. Each of those external ports need to firewall configuration.
-
-### LXD-based
-
-Documentation coming soon
-
-### Self-Hosted
-
-The OCI image is ephemeral and requires configuration each time it is used. To create an application-specific OCI image then you 
-use the image created earlier and pre-configure it so each time it is started it is ready to perform the actions for the specific repository. 
-
-#### Configuring
-
-Assume we wish to provide actions for the pleia2/python-test repository. We would create a image using the following dockerfile where the TOKEN argument 
-is generated when you add the self-hosted runner on github. ![Generating Token](selfhostedrunner.png)
-
-Sample file `Dockerfile.test`
+The script provides the following main options:
 
 ```
-FROM    localhost/runner:ubunutu
-
-ARG     REPO TOKEN
-
-RUN     /opt/runner/config.sh --url ${REPO} --token ${TOKEN}
-
-CMD     /opt/runner/run.sh
-```
-
-To build:
-* __Docker__: `docker build --build-arg=TOKEN=xxxxxx --build-arg=REPO=yyyyy --squash -f Dockerfile.test --tag runner:test .`
-* __Podman__: `podman build i--build-arg=TOKEN=xxxxx --build-arg=REPO=yyyyy  --squash-all -f Dockerfile.test --tag runner:test --from localhost/runner:ubuntu .`
-
-##### Sample Build
+1. VM (host machine)
+2. LXD
+3. Docker
+4. Podman
+5. Exit
 
 ```
-> podman build -f Dockerfile.test --build-arg TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXX --build-arg REPO=https://github.com/nealef/xx-xxxx --tag runner:test --from localhost/runner:ubuntu --squash-all .
-STEP 1/4: FROM localhost/runner:ubuntu
-STEP 2/4: ARG     REPO TOKEN
-STEP 3/4: RUN     /opt/runner/config.sh --url ${REPO} --token ${TOKEN}
 
---------------------------------------------------------------------------------
-|        ____ _ _   _   _       _          _        _   _                      |
-|       / ___(_) |_| | | |_   _| |__      / \   ___| |_(_) ___  _ __  ___      |
-|      | |  _| | __| |_| | | | | '_ \    / _ \ / __| __| |/ _ \| '_ \/ __|     |
-|      | |_| | | |_|  _  | |_| | |_) |  / ___ \ (__| |_| | (_) | | | \__ \     |
-|       \____|_|\__|_| |_|\__,_|_.__/  /_/   \_\___|\__|_|\___/|_| |_|___/     |
-|                                                                              |
-|                       Self-hosted runner registration                        |
-|                                                                              |
---------------------------------------------------------------------------------
+Select an option to proceed with the setup.
 
-# Authentication
+### **OS and Version Selection**
 
+Choose your preferred operating system and version (Ubuntu or CentOS). If a version is not specified, the script will prompt you for a selection.
 
-√ Connected to GitHub
+### **Minimal or Complete Setup**
 
-# Runner Registration
+- **Minimal Setup**: Installs only the essential components.
+- **Complete Setup**: Performs a full installation with additional configurations.
 
-Enter the name of the runner group to add this runner to: [press Enter for Default]
-Enter the name of runner: [press Enter for f87a23ac8222]
-This runner will have the following labels: 'self-hosted', 'Linux', 'S390X'
-Enter any additional labels (ex. label-1,label-2): [press Enter to skip]
-√ Runner successfully added
-√ Runner connection is good
+### **Unsupported Architectures**
 
-# Runner settings
-
-Enter name of work folder: [press Enter for _work]
-√ Settings Saved.
-
-STEP 4/4: CMD     /opt/runner/run.sh
-COMMIT runner:test
-Getting image source signatures
-Copying blob e7313806e8a2 done
-Copying config 7aca7e9e0e done
-Writing manifest to image destination
---> 7aca7e9e0e3a
-[Warning] one or more build args were not consumed: [TOKEN]
-Successfully tagged localhost/runner:test
-7aca7e9e0e3a747fd4aef471a787e27e7464187c691f7a855f359dd6e7127d30
-
-> podman images
-REPOSITORY                                 TAG                     IMAGE ID      CREATED             SIZE
-localhost/runner                           test                    7aca7e9e0e3a  About a minute ago  1.54 GB
-```
-
-#### Running
-
-* __Docker__: `docker run runner:test`
-* __Podman__: `podman run runner:test`
-
-##### Sample Run
-
-Using the file `Makefile.yml` in the `.gitub/workflow` directory of the repository containing:
-```
-name: Makefile CI
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-jobs:
-  build:
-
-    runs-on: self-hosted
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Install dependencies
-      run: sudo apt-get install -y golang-go
-
-    - name: Build
-      run: GOPATH=/home/ubuntu/go GOCACHE=/tmp/go make
-```
-
-Start the runner:
+If the script encounters an unsupported architecture, it will provide these options:
 
 ```
-> podman run --rm -it runner:test
+1. Return to the previous step
+2. Exit
 
-√ Connected to GitHub
-
-Current runner version: '2.312.0'
-2024-01-31 01:56:33Z: Listening for Jobs
-2024-01-31 01:56:40Z: Running job: build
-2024-01-31 01:57:39Z: Job build completed with result: Succeeded
 ```
 
-The github actions page for that repo will show something like this:
-![Build Succeeded](CI_Job.png)
+---
+
+## **Requirements**
+
+- **Bash Shell**: Required to execute the scripts.
+- **Sudo Privileges**: Necessary for certain setup tasks depending on the environment.
+
+---
+
+## **Contributing**
+
+We welcome contributions to enhance GapLib. Here's how you can help:
+
+1. Fork the repository.
+2. Create a new branch for your changes.
+3. Submit a pull request with detailed information about your updates.
+
+For suggestions, bug reports, or questions, feel free to open an issue in the repository.
+
+---
+
+### **Why Choose GapLib?**
+
+With support for multiple architectures, operating systems, and containerized environments, GapLib simplifies and streamlines the process of configuring GitHub Actions runners, making it the go-to solution for diverse project requirements.
