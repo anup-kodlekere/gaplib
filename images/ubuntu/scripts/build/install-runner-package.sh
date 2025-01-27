@@ -17,7 +17,11 @@ else
     archive_name="${download_url##*/}"
     archive_path=$(download_with_retry "$download_url")
 
-    # Create directory and move the downloaded file
-    mkdir -p /opt/runner-cache
-    mv "$archive_path" "/opt/runner-cache/$archive_name"
+    echo "Installing runner"
+    sudo mkdir -p /opt/runner 
+    sudo tar -xf "$archive_path" -C /opt/runner
+    if [ $? -eq 0 ]; then
+        sudo chown  runner:runner -R /opt/runner
+        sudo -u  runner /opt/runner/config.sh --version
+    fi
 fi
