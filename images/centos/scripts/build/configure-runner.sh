@@ -18,7 +18,7 @@ patch_runner() {
     git clone -q ${RUNNERREPO}
     cd runner
     git checkout main -b build
-    git apply /imagegeneration/runner-sdk-8.patch
+    git apply --allow-empty /imagegeneration/runner-sdk-8.patch
     sed -i'' -e /version/s/8......\"$/8.0.100\"/ src/global.json
     return $?
 }
@@ -29,17 +29,17 @@ build_runner() {
     cd src
 
     msg "dev layout"
-    ./dev.sh layout Release linux-${ARCH}
+    ./dev.sh layout Release 
 
     if [ $? -eq 0 ]; then
         msg "dev package"
-        ./dev.sh package Release linux-${ARCH}
+        ./dev.sh package Release 
 
         if [ $? -eq 0 ]; then
             msg "Finished building runner binary"
 
             msg "Running tests"
-            ./dev.sh test Release linux-${ARCH}
+            ./dev.sh test Release 
         fi
     fi
 
