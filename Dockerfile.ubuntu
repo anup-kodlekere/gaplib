@@ -1,6 +1,6 @@
-FROM    ubuntu:24.10
+FROM    ubuntu:24.10 AS builder
 
-ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK_VERSION ARCH
+ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK_VERSION ARCH RUNNER_VERSION
 
 ENV     DEBIAN_FRONTEND=noninteractive
 
@@ -8,27 +8,33 @@ COPY    build-files/99synaptics /etc/apt/apt.conf.d/
 
 COPY    build-files/01-nodoc /etc/dpkg/dpkg.cfg.d/
 
-RUN     apt-get -qq update -y && \
-        apt-get -qq -y install wget git sudo curl dotnet-sdk-8.0 && \
+RUN     apt-get update -y && \
+        apt-get -y install wget git sudo curl jq dotnet-sdk-8.0 && \
         apt autoclean
 
 RUN     echo "Using SDK - `dotnet --version`"
 
 ADD     ${RUNNERPATCH} /tmp/runner.patch
 
-RUN     cd /tmp && \
-        git clone -q ${RUNNERREPO} && \
-        cd runner && \
-        git checkout main -b build && \
-        git apply /tmp/runner.patch && \
-        sed -i'' -e /version/s/8......\"$/${SDK}.0.100\"/ src/global.json
-        
+RUN     git clone -q -b ${RUNNER_VERSION} ${RUNNERREPO} /tmp/runner
+WORKDIR /tmp/runner
+RUN     git apply /tmp/runner.patch
 
-RUN     cd /tmp/runner/src && \
-        ./dev.sh layout && \
-        ./dev.sh package && \
-        ./dev.sh test && \
-        rm -rf /root/.dotnet /root/.nuget
+# dotnet refuses to build if global.json version and dotnet version don't match
+# it's difficult to get the right version of dotnet on s390x (the best way is to build it)
+# so replacing the version in global.json is an acceptable workaround
+RUN     jq --arg ver "$(dotnet --version)" '.sdk.version = $ver' src/global.json > tmp.json && \
+        mv tmp.json src/global.json
+
+WORKDIR /tmp/runner/src
+RUN     ./dev.sh layout
+RUN     ./dev.sh package
+RUN     ./dev.sh test
+
+RUN     rm -rf /root/.dotnet /root/.nuget
+
+FROM ubuntu:24.10 AS runner
+COPY --from=builder / /
 
 RUN     usermod -L ubuntu && \
         echo "ubuntu  ALL=(ALL)       NOPASSWD: ALL" >/etc/sudoers.d/ubuntu
@@ -41,7 +47,7 @@ RUN     mkdir -p /opt/runner && \
 RUN     apt-get -qq -y install cmake make automake autoconf m4 gcc-12-base libtool
 
 RUN     rm -rf /tmp/runner /tmp/runner.patch
-    
+
 USER    ubuntu
 
 EXPOSE  443

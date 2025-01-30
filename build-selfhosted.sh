@@ -10,6 +10,7 @@ usage() {
     exit
 }
 
+RUNNER_VERSION=$(cat last_version)
 ARCH=`uname -m`
 DISTROS=""
 BUILDER=`which podman 2>/dev/null`
@@ -42,7 +43,11 @@ do
     if [ ! -f Dockerfile.${dist} ]; then
         echo "${dist} not supported" >&2
     else 
-        ${BUILDER} build -f Dockerfile.${dist} --build-arg RUNNERPATCH=build-files/runner-sdk-8.patch \
-            --build-arg ARCH=${ARCH} --tag runner:${dist} .
+        ${BUILDER} build -f Dockerfile.${dist} \
+            --platform linux/s390x \
+            --build-arg RUNNERPATCH=build-files/runner-sdk-8.patch \
+            --build-arg RUNNER_VERSION=${RUNNER_VERSION} \
+            --build-arg ARCH=${ARCH} \
+            --tag runner:${dist} .
     fi
 done
