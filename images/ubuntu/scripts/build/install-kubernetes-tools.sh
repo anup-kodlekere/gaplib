@@ -29,7 +29,7 @@ if [[ "$ARCH" == "ppc64le" ]] ; then
     curl -fsSL -O https://storage.googleapis.com/minikube/releases/latest/minikube-linux-ppc64le
 
     # Supply chain security - minikube
-    minikube_hash=$(get_checksum_from_github_release "kubernetes/minikube" "linux-ppc64le" "latest" "SHA256")
+    minikube_hash=$(get_checksum_from_github_release "kubernetes/minikube" "minikube-linux-ppc64le" "latest" "SHA256")
     use_checksum_comparison "minikube-linux-ppc64le" "${minikube_hash}"
 
     # Install minikube
@@ -61,7 +61,7 @@ elif [[ "$ARCH" == "s390x" ]]; then
     curl -fsSL -O https://storage.googleapis.com/minikube/releases/latest/minikube-linux-s390x
 
     # Supply chain security - minikube
-    minikube_hash=$(get_checksum_from_github_release "kubernetes/minikube" "linux-s390x" "latest" "SHA256")
+    minikube_hash=$(get_checksum_from_github_release "kubernetes/minikube" "minikube-linux-s390x" "latest" "SHA256")
     use_checksum_comparison "minikube-linux-s390x" "${minikube_hash}"
 
     # Install minikube
@@ -98,7 +98,7 @@ else
     curl -fsSL -O https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 
     # Supply chain security - minikube
-    minikube_hash=$(get_checksum_from_github_release "kubernetes/minikube" "linux-amd64" "latest" "SHA256")
+    minikube_hash=$(get_checksum_from_github_release "kubernetes/minikube" "minikube-linux-amd64" "latest" "SHA256")
     use_checksum_comparison "minikube-linux-amd64" "${minikube_hash}"
 
     # Install minikube

@@ -149,22 +149,18 @@ get_checksum_from_github_release() {
     fi
 
     matching_releases=$(get_github_releases_by_version "${repo}" "${version}" "${allow_pre_release}" "true")
-    matched_line=$(printf "$(echo $matching_releases | jq '.body')\n" | grep "$file_name")
+    # Find the checksum file URL
+    checksum_url=$(echo "$matching_releases" | jq -r --arg file "$file_name" '.assets[] | select(.name | endswith("\($file).sha256")) | .browser_download_url')
 
-    if [[ -z "$matched_line" ]]; then
-        echo "File name ${file_name} not found in release body" >&2
+    if [[ -z "$checksum_url" ]]; then
+        echo "Checksum file for $file_name not found in release assets" >&2
         exit 1
     fi
 
-    if [[ "$(echo "$matched_line" | wc -l)" -gt 1 ]]; then
-        echo "Multiple matches found for ${file_name} in release body: ${matched_line}" >&2
-        exit 1
-    fi
-
-    hash=$(echo $matched_line | grep -oP "$hash_pattern")
-
+    # Download and extract the hash
+    hash=$(curl -fsSL "$checksum_url" | awk '{print $1}')
     if [[ -z "$hash" ]]; then
-        echo "Found ${file_name} in body of release, but failed to get hash from it: ${matched_line}" >&2
+        echo "Failed to extract hash for $file_name" >&2
         exit 1
     fi
 
