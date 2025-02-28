@@ -10,7 +10,7 @@ install_clang() {
     local version=$1
 
     echo "Installing clang-$version..."
-    apt-get install "clang-$version" "lldb-$version" "lld-$version" "clang-format-$version" "clang-tidy-$version"
+    install_dpkgs "clang-$version" "lldb-$version" "lld-$version" "clang-format-$version" "clang-tidy-$version"
 }
 
 set_default_clang() {

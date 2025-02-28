@@ -7,7 +7,7 @@
 source $HELPER_SCRIPTS/os.sh
 source $HELPER_SCRIPTS/install.sh
 
-apt-get install ruby-full
+install_dpkgs ruby-full
 
 # temporary fix for fastlane installation https://github.com/sporkmonger/addressable/issues/541
 if is_ubuntu20; then
@@ -24,7 +24,7 @@ if [[ -n "$gems_to_install" ]]; then
 fi
 
 # Install Ruby requirements
-apt-get install libz-dev openssl libssl-dev
+install_dpkgs libz-dev openssl libssl-dev
 
 echo "Install Ruby from toolset..."
 package_tar_names=$(curl -fsSL "https://api.github.com/repos/ruby/ruby-builder/releases/latest" | jq -r '.assets[].name')

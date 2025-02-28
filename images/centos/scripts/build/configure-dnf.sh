@@ -3,7 +3,8 @@
 ##  File:  configure-dnf.sh
 ##  Desc:  Configure dnf/yum, install jq package, and improve package management behavior.
 ################################################################################
-
+# Source the helpers for use with the script
+source $HELPER_SCRIPTS/install.sh
 # Enable retries for DNF (maximum retries set to 10)
 echo "retries=10" >> /etc/dnf/dnf.conf
 
@@ -26,7 +27,7 @@ echo 'DNF/YUM repositories:'
 dnf repolist
 
 # Update repositories and install jq
-dnf install -y jq
+install_dnfpkgs jq
 
 # Optional: Configure parallel downloads to speed up package installation
 echo "max_parallel_downloads=10" >> /etc/dnf/dnf.conf

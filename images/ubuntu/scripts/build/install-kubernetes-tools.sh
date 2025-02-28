@@ -9,7 +9,7 @@ source $HELPER_SCRIPTS/install.sh
 
 if [[ "$ARCH" == "ppc64le" ]] ; then 
     export version="latest"
-    sudo apt install golang -y
+    install_dpkgs golang 
     sudo go install sigs.k8s.io/kind@$version # v0.22.0
     sudo cp $(sudo go env GOPATH)/bin/kind /usr/local/bin/
     kind version
@@ -18,8 +18,8 @@ if [[ "$ARCH" == "ppc64le" ]] ; then
     kubectl_minor_version=$(curl -fsSL "https://dl.k8s.io/release/stable.txt" | cut -d'.' -f1,2 )
     curl -fsSL https://pkgs.k8s.io/core:/stable:/$kubectl_minor_version/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/'$kubectl_minor_version'/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    apt-get update
-    apt-get install kubectl
+    update_dpkgs
+    install_dpkgs kubectl
     rm -f /etc/apt/sources.list.d/kubernetes.list
 
     # Install Helm
@@ -41,7 +41,7 @@ if [[ "$ARCH" == "ppc64le" ]] ; then
     mv kustomize /usr/local/bin
 elif [[ "$ARCH" == "s390x" ]]; then
     export version="latest"
-    sudo apt install golang -y
+    install_dpkgs golang
     sudo go install sigs.k8s.io/kind@$version # v0.22.0
     sudo cp $(sudo go env GOPATH)/bin/kind /usr/local/bin/
     kind version
@@ -50,8 +50,8 @@ elif [[ "$ARCH" == "s390x" ]]; then
     kubectl_minor_version=$(curl -fsSL "https://dl.k8s.io/release/stable.txt" | cut -d'.' -f1,2 )
     curl -fsSL https://pkgs.k8s.io/core:/stable:/$kubectl_minor_version/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/'$kubectl_minor_version'/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    apt-get update
-    apt-get install kubectl
+    update_dpkgs
+    install_dpkgs kubectl
     rm -f /etc/apt/sources.list.d/kubernetes.list
 
     # Install Helm
@@ -87,8 +87,8 @@ else
     kubectl_minor_version=$(curl -fsSL "https://dl.k8s.io/release/stable.txt" | cut -d'.' -f1,2 )
     curl -fsSL https://pkgs.k8s.io/core:/stable:/$kubectl_minor_version/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/'$kubectl_minor_version'/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    apt-get update
-    apt-get install kubectl
+    update_dpkgs
+    install_dpkgs kubectl
     rm -f /etc/apt/sources.list.d/kubernetes.list
 
     # Install Helm

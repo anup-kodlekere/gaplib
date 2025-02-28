@@ -5,4 +5,4 @@
 ################################################################################
 source $HELPER_SCRIPTS/install.sh
 
-sudo apt-get -y install podman
+install_dpkgs podman

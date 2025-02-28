@@ -18,7 +18,7 @@ patch_runner() {
     git clone -q ${RUNNERREPO}
     cd runner
     git checkout main -b build
-    git apply --allow-empty /imagegeneration/runner-sdk-8.patch
+    git apply --allow-empty /var/tmp/imagegeneration/runner-sdk-8.patch
     sed -i'' -e /version/s/8......\"$/8.0.100\"/ src/global.json
     return $?
 }

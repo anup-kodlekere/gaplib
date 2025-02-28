@@ -25,5 +25,5 @@ else
     use_checksum_comparison "$gh_cli_rpm_path" "$external_hash"
 
     # Install GitHub CLI
-    sudo dnf install -y "$gh_cli_rpm_path"
+    install_dnfpkgs "$gh_cli_rpm_path"
 fi

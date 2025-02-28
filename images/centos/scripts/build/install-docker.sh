@@ -62,7 +62,7 @@ else
     dnf -y install dnf-plugins-core
     dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-    dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    install_dnfpkgs docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # docker from official repo introduced different GID generation: https://github.com/actions/runner-images/issues/8157
     gid=$(cut -d ":" -f 3 /etc/group | grep "^1..$" | sort -n | tail -n 1 | awk '{ print $1+1 }')

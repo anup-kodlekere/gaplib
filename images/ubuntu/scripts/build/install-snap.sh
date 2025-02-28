@@ -8,8 +8,8 @@ source $HELPER_SCRIPTS/install.sh
 # Install snapd if not already installed
 echo "Installing snapd..."
 if ! dpkg -l | grep -q snapd; then
-    sudo apt-get update
-    sudo apt-get -y install snapd
+    update_dpkgs
+    install_dpkgs snapd
 else
     echo "snapd is already installed."
 fi

@@ -18,12 +18,12 @@ else
     if is_ubuntu22; then
         focal_list=/etc/apt/sources.list.d/focal-security.list
         echo "deb http://archive.ubuntu.com/ubuntu/ focal-security main" | tee "${focal_list}"
-        apt-get update --quiet
+        update_dpkgs
 
-        apt-get install --no-install-recommends libssl1.1
+        install_dpkgs --no-install-recommends libssl1.1
 
         rm "${focal_list}"
-        apt-get update --quiet
+        update_dpkgs
     fi
 
     # Install SqlPackage

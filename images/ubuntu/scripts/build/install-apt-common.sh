@@ -11,5 +11,5 @@ cmd_packages=$(get_toolset_value .apt.cmd_packages[])
 
 for package in $common_packages $cmd_packages; do
     echo "Install $package"
-    apt-get install --no-install-recommends $package
+    install_dpkgs --no-install-recommends $package
 done

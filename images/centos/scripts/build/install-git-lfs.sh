@@ -10,7 +10,7 @@ GIT_LFS_REPO="https://packagecloud.io/github/git-lfs/el/9"
 
 # Install git-lfs
 curl -fsSL https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | sudo bash
-sudo dnf install -y git-lfs
+install_dnfpkgs git-lfs
 
 # Remove source repo's
 sudo rm -f /etc/yum.repos.d/github_git-lfs.repo

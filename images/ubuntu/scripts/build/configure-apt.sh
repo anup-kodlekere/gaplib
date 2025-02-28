@@ -4,14 +4,15 @@
 ##  Desc:  Configure apt, install jq and apt-fast packages.
 ################################################################################
 source $HELPER_SCRIPTS/os.sh
+source $HELPER_SCRIPTS/install.sh
 
 # Stop and disable apt-daily upgrade services;
-systemctl stop apt-daily.timer
-systemctl disable apt-daily.timer
-systemctl disable apt-daily.service
-systemctl stop apt-daily-upgrade.timer
-systemctl disable apt-daily-upgrade.timer
-systemctl disable apt-daily-upgrade.service
+systemctl stop apt-daily.timer >/dev/null
+systemctl disable apt-daily.timer >/dev/null
+systemctl disable apt-daily.service >/dev/null
+systemctl stop apt-daily-upgrade.timer >/dev/null
+systemctl disable apt-daily-upgrade.timer >/dev/null
+systemctl disable apt-daily-upgrade.service >/dev/null
 
 # Enable retry logic for apt up to 10 times
 echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries
@@ -34,7 +35,7 @@ Acquire::BrokenProxy    true;
 EOF
 
 # Uninstall unattended-upgrades
-apt-get purge unattended-upgrades
+apt-get -qq purge unattended-upgrades >/dev/null |& tee -a /tmp/install.errors
 
 echo 'APT sources'
 if ! is_ubuntu24; then
@@ -43,9 +44,9 @@ else
     cat /etc/apt/sources.list.d/ubuntu.sources
 fi
 
-apt-get update
+update_dpkgs
 # Install jq
-apt-get install jq
+install_dpkgs jq
 
 if ! is_ubuntu24; then
     # Install apt-fast using quick-install.sh

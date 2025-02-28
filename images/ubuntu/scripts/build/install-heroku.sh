@@ -3,6 +3,8 @@
 ##  File:  install-heroku.sh
 ##  Desc:  Install Heroku CLI. Based on instructions found here: https://devcenter.heroku.com/articles/heroku-cli
 ################################################################################
+# Source the helpers for use with the script
+source $HELPER_SCRIPTS/install.sh
 
 if [[ "$ARCH" == "ppc64le" ]]; then 
     # Placeholder for ppc64le-specific logic
@@ -20,8 +22,8 @@ else
     echo "deb [trusted=yes] $REPO_URL ./" > $REPO_PATH
 
     # install heroku
-    apt-get update
-    apt-get install heroku
+    update_dpkgs
+    install_dpkgs heroku
 
     # remove heroku's apt repository
     rm $REPO_PATH

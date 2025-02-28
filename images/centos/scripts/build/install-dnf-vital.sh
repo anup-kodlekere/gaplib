@@ -9,4 +9,4 @@ source $HELPER_SCRIPTS/install.sh
 vital_packages=$(get_toolset_value .dnf.vital_packages[])
 
 # Install vital packages using dnf
-dnf install -y --setopt=install_weak_deps=False $vital_packages
+install_dnfpkgs --setopt=install_weak_deps=False $vital_packages

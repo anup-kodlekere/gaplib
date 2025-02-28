@@ -76,8 +76,9 @@ build_image() {
       return 2
   fi
   
-  msg "Copy the /imagegeneration contents into the gha-builder"
-  lxc file push "/imagegeneration" "${BUILD_CONTAINER}/" --recursive
+  msg "Copy the ${image_folder} contents into the gha-builder"
+  lxc file push "${image_folder}" "${BUILD_CONTAINER}/var/tmp/" --recursive
+  lxc exec ${BUILD_CONTAINER} ls /tmp
 
   msg "Copy the register-runner.sh script into gha-builder"
   lxc file push --mode 0755 ${BUILD_PREREQS_PATH}/helpers/register-runner.sh "${BUILD_CONTAINER}/opt/register-runner.sh"
@@ -96,10 +97,14 @@ build_image() {
   lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c "useradd -c 'Action Runner' -m runner && usermod -L runner && echo 'runner  ALL=(ALL)       NOPASSWD: ALL' >/etc/sudoers.d/runner"
   
   msg "Running build-image.sh"
-  lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c  "/imagegeneration/helpers/setup_install.sh ${IMAGE_OS} ${IMAGE_VERSION} ${SETUP}"
+  lxc exec "${BUILD_CONTAINER}" --user 0 --group 0 -- sh -c  "${helper_script_folder}/setup_install.sh ${IMAGE_OS} ${IMAGE_VERSION} ${SETUP}"
   RC=$?
 
   if [ ${RC} -eq 0 ]; then
+      msg "Clearing APT cache"
+      lxc exec "${BUILD_CONTAINER}" -- apt-get -y -qq clean
+      lxc exec "${BUILD_CONTAINER}" -- rm -rf ${image_folder}
+
       # Until we are at lxc >= 5.19 we can't use the --reuse option on the publish command
       # Check and delete the LXC image if it exists
       msg "Deleting old image"

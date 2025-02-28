@@ -2,10 +2,10 @@
 set -e  # Exit on any error
 
 toolset_file_name="toolset-$(echo "$2" | sed 's/\.//g').json"
-image_folder="/imagegeneration"
-helper_script_folder="/imagegeneration/helpers"
-installer_script_folder="/imagegeneration/installers"
-imagedata_file="/imagegeneration/imagedata.json"
+image_folder="/var/tmp/imagegeneration"
+helper_script_folder="${image_folder}/helpers"
+installer_script_folder="${image_folder}/installers"
+imagedata_file="${image_folder}/imagedata.json"
 
 # Default environment variable values
 ARCH=${ARCH:-$(uname -m)}

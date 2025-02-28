@@ -7,7 +7,7 @@ source $HELPER_SCRIPTS/os.sh
 
 if [[ "$ARCH" == "ppc64le" || "$ARCH" == "s390x" ]]; then 
     echo "Installing dotnet for architecture: $ARCH"
-    apt-get install -y dotnet-sdk-8.0
+    install_dpkgs dotnet-sdk-8.0
 else
     extract_dotnet_sdk() {
         local archive_name=$1
@@ -42,13 +42,13 @@ Pin: origin packages.microsoft.com
 Pin-Priority: 1001
 EOF
 
-    apt-get update
+    update_dpkgs
 
     for latest_package in ${latest_dotnet_packages[@]}; do
         echo "Determining if .NET Core ($latest_package) is installed"
         if ! dpkg -S $latest_package &> /dev/null; then
             echo "Could not find .NET Core ($latest_package), installing..."
-            apt-get install -y $latest_package
+            install_dpkgs $latest_package
         else
             echo ".NET Core ($latest_package) is already installed"
         fi
@@ -56,7 +56,7 @@ EOF
 
     rm /etc/apt/preferences.d/dotnet
 
-    apt-get update
+    update_dpkgs
 
     # Install .NET SDK from home repository
     # Get list of all released SDKs from channels which are not end-of-life or preview

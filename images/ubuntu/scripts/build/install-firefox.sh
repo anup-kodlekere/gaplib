@@ -26,8 +26,8 @@ else
     curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${GPG_FINGERPRINT}" | sudo gpg --dearmor -o $GPG_KEY
     echo "deb $REPO_URL $(lsb_release -cs) main" > $REPO_PATH
 
-    apt-get update
-    apt-get install --target-release 'o=LP-PPA-mozillateam' firefox
+    update_dpkgs
+    install_dpkgs --target-release='o=LP-PPA-mozillateam' firefox
     rm $REPO_PATH
 
     # Document apt source repo's

@@ -7,10 +7,10 @@
 source $HELPER_SCRIPTS/install.sh
 
 # Enable EPEL repository for additional packages
-sudo dnf install -y epel-release
+install_dnfpkgs epel-release
 
 # Install Git
-sudo dnf install -y git
+install_dnfpkgs git
 
 # Git version 2.35.2 introduces a security fix that breaks action/checkout
 cat <<EOF | sudo tee -a /etc/gitconfig

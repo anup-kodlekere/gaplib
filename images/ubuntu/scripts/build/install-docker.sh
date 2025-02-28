@@ -15,10 +15,10 @@ if [[ "$ARCH" == "ppc64le" || "$ARCH" == "s390x" ]]; then
 
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o $GPG_KEY
     echo "deb [arch=$(dpkg --print-architecture) signed-by=$GPG_KEY] $REPO_URL ${os_codename} stable" > $REPO_PATH
-    apt-get update
+    update_dpkgs
 
     # Install docker components which available via apt-get
-    apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    install_dpkgs docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # docker from official repo introduced different GID generation: https://github.com/actions/runner-images/issues/8157
     gid=$(cut -d ":" -f 3 /etc/group | grep "^1..$" | sort -n | tail -n 1 | awk '{ print $1+1 }')
@@ -72,7 +72,7 @@ else
 
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o $GPG_KEY
     echo "deb [arch=amd64 signed-by=$GPG_KEY] $REPO_URL ${os_codename} stable" > $REPO_PATH
-    apt-get update
+    update_dpkgs
 
     # Install docker components which available via apt-get
     # Using toolsets keep installation order to install dependencies before the package in order to control versions
@@ -81,10 +81,10 @@ else
     for package in $components; do
         version=$(get_toolset_value ".docker.components[] | select(.package == \"$package\") | .version")
         if [[ $version == "latest" ]]; then
-            apt-get install --no-install-recommends "$package"
+            install_dpkgs --no-install-recommends "$package"
         else
             version_string=$(apt-cache madison "$package" | awk '{ print $3 }' | grep "$version" | grep "$os_codename" | head -1)
-            apt-get install --no-install-recommends "${package}=${version_string}"
+            install_dpkgs --no-install-recommends "${package}=${version_string}"
         fi
     done
 

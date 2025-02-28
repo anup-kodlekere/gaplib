@@ -11,5 +11,5 @@ cmd_packages=$(get_toolset_value .dnf.cmd_packages[])
 
 for package in $common_packages $cmd_packages; do
     echo "Install $package"
-    dnf install -y --setopt=install_weak_deps=False $package
+    install_dnfpkgs --setopt=install_weak_deps=False $package
 done

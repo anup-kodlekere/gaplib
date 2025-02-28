@@ -73,7 +73,8 @@ install_pypy() {
 }
 
 if [[ "$ARCH" == "ppc64le" ]]; then 
-    apt-get update -y && apt-get install -y --no-install-recommends pypy
+    update_dpkgs 
+    install_dpkgs --no-install-recommends pypy
 elif [[ "$ARCH" == "s390x" ]]; then
     # Placeholder for s390x-specific logic
     echo "No actions defined for s390x architecture."

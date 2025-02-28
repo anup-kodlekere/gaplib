@@ -12,7 +12,7 @@ source $HELPER_SCRIPTS/install.sh
 # details in thread: https://github.com/actions/runner-images/issues/6331
 if is_ubuntu20; then
     apt-add-repository ppa:ondrej/php -y
-    apt-get update
+    update_dpkgs
 fi
 
 # Install PHP
@@ -20,7 +20,7 @@ php_versions=$(get_toolset_value '.php.versions[]')
 
 for version in $php_versions; do
     echo "Installing PHP $version"
-    apt-get install --no-install-recommends \
+    install_dpkgs --no-install-recommends \
         php$version \
         php$version-amqp \
         php$version-apcu \
@@ -66,24 +66,24 @@ for version in $php_versions; do
         php$version-zip \
         php$version-zmq
 
-        apt-get install --no-install-recommends php$version-pcov
+        install_dpkgs --no-install-recommends php$version-pcov
 
         # Disable PCOV, as Xdebug is enabled by default
         # https://github.com/krakjoe/pcov#interoperability
         phpdismod -v $version pcov
 
     if [[ $version == "7.2" || $version == "7.3" || $version == "7.4" ]]; then
-        apt-get install --no-install-recommends php$version-recode
+        install_dpkgs --no-install-recommends php$version-recode
     fi
 
     if [[ $version != "8.0" && $version != "8.1" && $version != "8.2" && $version != "8.3" ]]; then
-        apt-get install --no-install-recommends php$version-xmlrpc php$version-json
+        install_dpkgs --no-install-recommends php$version-xmlrpc php$version-json
     fi
 done
 
-apt-get install --no-install-recommends php-pear
+install_dpkgs --no-install-recommends php-pear
 
-apt-get install --no-install-recommends snmp
+install_dpkgs --no-install-recommends snmp
 
 # Install composer
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
@@ -106,5 +106,5 @@ install phpunit /usr/local/bin/phpunit
 # see https://github.com/actions/runner-images/issues/1084
 if is_ubuntu20; then
     rm /etc/apt/sources.list.d/ondrej-*.list
-    apt-get update
+    update_dpkgs
 fi

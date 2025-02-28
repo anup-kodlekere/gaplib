@@ -7,12 +7,12 @@
 source $HELPER_SCRIPTS/install.sh
 
 if [[ "$ARCH" == "ppc64le" ]] ; then 
-    apt-get update -y
-    apt-get install -y build-essential g++ flex bison gperf \
+    update_dpkgs
+    install_dpkgs build-essential g++ flex bison gperf \
             ruby perl libsqlite3-dev libfontconfig1-dev libicu-dev \
             libfreetype6 libssl-dev libpng-dev libjpeg-dev python \
             libx11-dev libxext-dev git
-    apt-get install -y "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev
+    install_dpkgs "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev
 
     # Clone PhantomJS code and build it.
     wrkdir=`/tmp`
@@ -30,7 +30,7 @@ elif [[ "$ARCH" == "s390x" ]]; then
     echo "No actions defined for s390x architecture."
 else
     # Install required dependencies
-    apt-get install chrpath libssl-dev libxft-dev libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev
+    install_dpkgs chrpath libssl-dev libxft-dev libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev
 
     # Define the version and hash of PhantomJS to be installed
     DIR_NAME=phantomjs-2.1.1-linux-x86_64

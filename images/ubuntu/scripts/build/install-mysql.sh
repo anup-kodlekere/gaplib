@@ -5,6 +5,7 @@
 ################################################################################
 # Source the helpers for use with the script
 source $HELPER_SCRIPTS/os.sh
+source $HELPER_SCRIPTS/install.sh
 
 # Mysql setting up root password
 MYSQL_ROOT_PASSWORD=root
@@ -14,13 +15,13 @@ echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT_PASSWOR
 export ACCEPT_EULA=Y
 
 # Install MySQL Client
-apt-get install mysql-client
+install_dpkgs mysql-client
 
 # Install MySQL Server
-apt-get install mysql-server
+install_dpkgs mysql-server
 
 # Install MySQL Dev tools
-apt-get install libmysqlclient-dev
+install_dpkgs libmysqlclient-dev
 
 # Disable mysql.service
 systemctl is-active --quiet mysql.service && systemctl stop mysql.service

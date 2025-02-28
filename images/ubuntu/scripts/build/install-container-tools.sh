@@ -5,6 +5,7 @@
 ################################################################################
 # Source the helpers for use with the script
 source $HELPER_SCRIPTS/os.sh
+source $HELPER_SCRIPTS/install.sh
 
 #
 # pin podman due to https://github.com/actions/runner-images/issues/7753
@@ -27,8 +28,8 @@ if is_ubuntu20; then
 fi
 
 # Install podman, buildah, skopeo container's tools
-apt-get update
-apt-get install ${install_packages[@]}
+update_dpkgs
+install_dpkgs ${install_packages[@]}
 mkdir -p /etc/containers
 printf "[registries.search]\nregistries = ['docker.io', 'quay.io']\n" | tee /etc/containers/registries.conf
 

@@ -259,3 +259,29 @@ ensure_service_is_active() {
         fi
     fi
 }
+
+install_dnfpkgs()
+{
+    FLAGS=""
+    PKGS=""
+    for pkg in $*
+    do
+        case ${pkg} in
+            -*)
+                FLAGS="${FLAGS} ${pkg}"
+                ;;
+            *)
+                PKGS="${PKGS} ${pkg}"
+                ;;
+        esac
+    done
+    for pkg in ${PKGS}
+    do
+    	dnf install -y -qq ${FLAGS} ${pkg} 2>&1 >/dev/null | tee -a /tmp/install.errors
+    done
+}
+
+update_dnfpkgs()
+{
+    dnf -qq update -y 2>&1 >/dev/null | tee -a /tmp/install.errors
+}

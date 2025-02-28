@@ -7,7 +7,7 @@ source $HELPER_SCRIPTS/os.sh
 
 if [[ "$ARCH" == "ppc64le" || "$ARCH" == "s390x" ]]; then 
     echo "Installing dotnet for architecture: $ARCH"
-    dnf install -y -q dotnet-sdk-8.0
+    install_dnfpkgs dotnet-sdk-8.0
 else
     extract_dotnet_sdk() {
         local archive_name=$1
@@ -32,7 +32,7 @@ else
     export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
     # Add Microsoft repository for .NET SDK
-    sudo dnf install -y https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm
+    install_dnfpkgs https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm
 
     # Give Microsoft's repo higher priority
     cat <<EOF | sudo tee /etc/yum.repos.d/microsoft-prod.repo
@@ -46,14 +46,14 @@ priority=1
 EOF
 
     # Update package list
-    sudo dnf update -y
+    update_dnfpkgs
 
     # Install .NET SDK RPM packages
     for latest_package in ${latest_dotnet_packages[@]}; do
         echo "Determining if .NET Core ($latest_package) is installed"
         if ! rpm -q $latest_package &> /dev/null; then
             echo "Could not find .NET Core ($latest_package), installing..."
-            sudo dnf install -y $latest_package
+            install_dnfpkgs -y $latest_package
         else
             echo ".NET Core ($latest_package) is already installed"
         fi
@@ -61,7 +61,7 @@ EOF
 
     # Remove custom repo priority
     sudo rm -f /etc/yum.repos.d/microsoft-prod.repo
-    sudo dnf update -y
+    update_dnfpkgs
 
     # Install .NET SDK from home repository
     sdks=()

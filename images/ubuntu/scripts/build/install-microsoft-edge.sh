@@ -22,8 +22,8 @@ else
     # Specify an arch as Microsoft repository supports armhf and arm64 as well
     echo "deb [arch=amd64 signed-by=$GPG_KEY] $REPO_URL stable main" > $REPO_PATH
 
-    apt-get update
-    apt-get install --no-install-recommends microsoft-edge-stable
+    update_dpkgs
+    install_dpkgs --no-install-recommends microsoft-edge-stable
 
     rm $GPG_KEY
     rm $REPO_PATH

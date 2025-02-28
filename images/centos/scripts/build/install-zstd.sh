@@ -18,7 +18,7 @@ external_hash=$(get_checksum_from_url "${download_url}.sha256" "${release_name}.
 use_checksum_comparison "$archive_path" "$external_hash"
 
 # Install dependencies
-sudo dnf install -y lz4-devel gcc make
+install_dnfpkgs lz4-devel gcc make
 
 # Extract and build zstd
 tar xzf "$archive_path" -C /tmp

@@ -18,8 +18,8 @@ if [[ "$ARCH" == "ppc64le" ]] ; then
     echo "deb [ arch=$dpkgArch signed-by=$GPG_KEY ] $REPO_URL $(lsb_release -cs)/mongodb-org/$toolset_version multiverse" > $REPO_PATH
 
     # Install Mongo DB
-    sudo apt-get update
-    sudo apt-get install mongodb-org
+    update_dpkgs
+    install_dpkgs mongodb-org
 
     # remove Mongo DB's apt repository
     rm $REPO_PATH
@@ -41,8 +41,8 @@ else
     echo "deb [ arch=amd64,arm64, signed-by=$GPG_KEY ] $REPO_URL $(lsb_release -cs)/mongodb-org/$toolset_version multiverse" > $REPO_PATH
 
     # Install Mongo DB
-    sudo apt-get update
-    sudo apt-get install mongodb-org
+    update_dpkgs
+    install_dpkgs mongodb-org
 
     # remove Mongo DB's apt repository
     rm $REPO_PATH

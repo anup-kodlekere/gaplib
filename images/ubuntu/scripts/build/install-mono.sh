@@ -5,6 +5,7 @@
 ################################################################################
 # Source the helpers for use with the script
 source $HELPER_SCRIPTS/os.sh
+source $HELPER_SCRIPTS/install.sh
 
 os_label=$(lsb_release -cs)
 REPO_URL="https://download.mono-project.com/repo/ubuntu"
@@ -21,8 +22,8 @@ curl -fsSL https://download.mono-project.com/repo/xamarin.gpg | gpg --dearmor -o
 echo "deb [signed-by=$GPG_KEY] $REPO_URL stable-$os_label main" > $REPO_PATH
 
 # Install Mono
-apt-get update
-apt-get install --no-install-recommends apt-transport-https mono-complete nuget
+update_dpkgs
+install_dpkgs --no-install-recommends apt-transport-https mono-complete nuget
 
 # Remove Mono's apt repo
 rm $REPO_PATH
