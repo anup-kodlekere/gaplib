@@ -38,7 +38,7 @@ echo 'net.ipv6.conf.all.disable_ipv6=1' | tee -a /etc/sysctl.conf
 echo 'net.ipv6.conf.default.disable_ipv6=1' | tee -a /etc/sysctl.conf
 echo 'net.ipv6.conf.lo.disable_ipv6=1' | tee -a /etc/sysctl.conf
 
-ip link set dev $(ip route | awk '/default/ {print $5}') mtu 1400
+ip link set dev $(ip route | awk '/default/ {for(i=1;i<=NF;i++) if($i=="dev") {print $(i+1); exit}}') mtu 1400
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
 # https://www.suse.com/support/kb/doc/?id=000016692
