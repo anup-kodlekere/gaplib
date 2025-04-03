@@ -25,6 +25,6 @@ jobs:
       # Runs a single command using the runners shell
       - name: Build runner binary
         run: |
-          mkdir -p /var/tmp/imagegeneration/
-          cp patches/runner-main-sdk8-$(uname -m).patch /var/tmp/imagegeneration/runner-sdk-8.patch
-          ./images/ubuntu/scripts/build/configure-runner.sh
+          sudo mkdir -p /var/tmp/imagegeneration/
+          sudo cp patches/runner-main-sdk8-$(uname -m).patch /var/tmp/imagegeneration/runner-sdk-8.patch
+          sudo sh -c "images/ubuntu/scripts/build/configure-runner.sh"
