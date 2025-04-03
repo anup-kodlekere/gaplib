@@ -1,0 +1,92 @@
+name: Update Runner Patches
+
+on:
+  schedule:
+    # Run daily to check for updates
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+  # Also trigger when patches are modified in your repo
+  push:
+    paths:
+      - 'patches/runner-main-sdk8-*.patch'
+
+jobs:
+  update-patches:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [ppc64le, s390x, x86_64]
+    steps:
+    - name: Checkout your repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Git identity
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Clone upstream runner repository
+      run: git clone https://github.com/actions/runner.git upstream-runner
+
+    - name: Get latest commit hash
+      id: get-commit
+      run: |
+        cd upstream-runner
+        echo "UPSTREAM_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        echo "UPSTREAM_COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Check if commit already has patches
+      id: check-commit
+      run: |
+        if [ -f "patches/runner-main-sdk8-${{ matrix.arch }}.patch" ]; then
+          if grep -q "${{ steps.get-commit.outputs.UPSTREAM_COMMIT }}" "patches/runner-main-sdk8-${{ matrix.arch }}.patch"; then
+            echo "PATCH_EXISTS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PATCH_EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "PATCH_EXISTS=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Skip if patch already exists
+      if: steps.check-commit.outputs.PATCH_EXISTS == 'true'
+      run: |
+        echo "Patch for commit ${{ steps.get-commit.outputs.UPSTREAM_COMMIT_SHORT }} already exists"
+        exit 0
+
+    - name: Apply existing patch
+      if: steps.check-commit.outputs.PATCH_EXISTS == 'false' && exists('patches/runner-main-sdk8-${{ matrix.arch }}.patch')
+      run: |
+        cd upstream-runner
+        git checkout ${{ steps.get-commit.outputs.UPSTREAM_COMMIT }}
+        git apply --whitespace=nowarn ../patches/runner-main-sdk8-${{ matrix.arch }}.patch || true
+        git stash push -m "existing-patch-${{ matrix.arch }}"
+
+    - name: Pull latest changes
+      if: steps.check-commit.outputs.PATCH_EXISTS == 'false'
+      run: |
+        cd upstream-runner
+        git pull origin main
+
+    - name: Apply stashed changes
+      if: steps.check-commit.outputs.PATCH_EXISTS == 'false' && exists('patches/runner-main-sdk8-${{ matrix.arch }}.patch')
+      run: |
+        cd upstream-runner
+        git stash pop || true
+
+    - name: Create new patch
+      if: steps.check-commit.outputs.PATCH_EXISTS == 'false'
+      run: |
+        cd upstream-runner
+        git diff --patch --ignore-space-at-eol > ../patches/runner-main-sdk8-${{ matrix.arch }}.patch
+        # Add commit reference to patch file
+        echo "# From upstream commit: ${{ steps.get-commit.outputs.UPSTREAM_COMMIT }}" >> ../patches/runner-main-sdk8-${{ matrix.arch }}.patch
+
+    - name: Commit and push updated patches
+      if: steps.check-commit.outputs.PATCH_EXISTS == 'false'
+      run: |
+        git add patches/runner-main-sdk8-${{ matrix.arch }}.patch
+        git commit -m "Update patch for ${{ matrix.arch }} to upstream ${{ steps.get-commit.outputs.UPSTREAM_COMMIT_SHORT }}"
+        git push
