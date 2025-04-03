@@ -84,10 +84,10 @@ index 14cc6bab..c8ed8b92 100755
  
      if ! [ -x "$(command -v ldconfig)" ]; then
 diff --git a/src/Runner.Common/Constants.cs b/src/Runner.Common/Constants.cs
-index 53628d51..310b6daf 100644
+index 041b5be9..04eec775 100644
 --- a/src/Runner.Common/Constants.cs
 +++ b/src/Runner.Common/Constants.cs
-@@ -58,7 +58,9 @@ namespace GitHub.Runner.Common
+@@ -59,7 +59,9 @@ namespace GitHub.Runner.Common
              X86,
              X64,
              Arm,
@@ -98,7 +98,7 @@ index 53628d51..310b6daf 100644
          }
  
          public static class Runner
-@@ -81,6 +83,10 @@ namespace GitHub.Runner.Common
+@@ -82,6 +84,10 @@ namespace GitHub.Runner.Common
              public static readonly Architecture PlatformArchitecture = Architecture.Arm;
  #elif ARM64
              public static readonly Architecture PlatformArchitecture = Architecture.Arm64;
@@ -210,7 +210,7 @@ index 53c1610d..b41f0295 100644
      <NoWarn>NU1701;NU1603;SYSLIB0050;SYSLIB0051</NoWarn>
      <Version>$(Version)</Version>
 diff --git a/src/Sdk/Sdk.csproj b/src/Sdk/Sdk.csproj
-index 5f2c3fd5..dcf15d88 100644
+index 41f63ce3..9bfc3216 100644
 --- a/src/Sdk/Sdk.csproj
 +++ b/src/Sdk/Sdk.csproj
 @@ -4,7 +4,10 @@
@@ -239,7 +239,7 @@ index f3c1b8f9..9a1c5aa0 100644
                  "osx-arm64"
              };
 diff --git a/src/Test/L0/Listener/SelfUpdaterL0.cs b/src/Test/L0/Listener/SelfUpdaterL0.cs
-index 26ba65e7..22b690d5 100644
+index be095ce9..300cc179 100644
 --- a/src/Test/L0/Listener/SelfUpdaterL0.cs
 +++ b/src/Test/L0/Listener/SelfUpdaterL0.cs
 @@ -1,4 +1,4 @@
@@ -287,7 +287,7 @@ index 47a5d334..cb2fbbc3 100644
          [Trait("Level", "L0")]
          [Trait("Category", "Worker")]
 diff --git a/src/Test/Test.csproj b/src/Test/Test.csproj
-index bdb1d295..7749205f 100644
+index 10540052..43c0a10b 100644
 --- a/src/Test/Test.csproj
 +++ b/src/Test/Test.csproj
 @@ -2,6 +2,10 @@
