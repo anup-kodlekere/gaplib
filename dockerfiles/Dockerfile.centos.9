@@ -27,9 +27,10 @@ RUN     cd /tmp/runner/src && \
         ./dev.sh test && \
         rm -rf /root/.dotnet /root/.nuget
 
-RUN     useradd -c "Action Runner" -m  runner && \
-        usermod -L  runner && \
-        echo " runner  ALL=(ALL)       NOPASSWD: ALL" >/etc/sudoers.d/ runner
+RUN     useradd -c 'Action Runner' -m -s /bin/bash runner && \
+        usermod -L runner && \
+        echo 'runner ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/runner && \
+        chmod 440 /etc/sudoers.d/runner
 
 RUN     mkdir -p /opt/runner && \
         tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner && \
