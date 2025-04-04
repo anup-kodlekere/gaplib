@@ -17,13 +17,12 @@ RUN     echo "Using SDK - `dotnet --version`"
 ADD     ${RUNNERPATCH} /tmp/runner.patch
 
 RUN     cd /tmp && \
-        git clone -q ${RUNNERREPO} && \
+        git clone --tags -q ${RUNNERREPO} && \
         cd runner && \
-        git checkout main -b build && \
-        git apply /tmp/runner.patch && \
-        sed -i'' -e /version/s/8......\"$/${SDK}.0.100\"/ src/global.json
+        git checkout $(git tag --sort=-v:refname | grep '^v[0-9]' | head -n1) && \
+        git apply --whitespace=nowarn /tmp/runner.patch && \
+        sed -i'' -e /version/s/8......\"$/8.0.100\"/ src/global.json
         
-
 RUN     cd /tmp/runner/src && \
         ./dev.sh layout && \
         ./dev.sh package && \
@@ -34,7 +33,7 @@ RUN     useradd -c 'Action Runner' -m -s /bin/bash runner && \
         usermod -L runner && \
         echo 'runner ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/runner && \
         chmod 440 /etc/sudoers.d/runner
-        
+
 RUN     mkdir -p /opt/runner && \
         tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner && \
         chown -R  runner:runner /opt/runner && \

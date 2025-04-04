@@ -1,4 +1,4 @@
-name: CI
+name: Build runner binary
 
 # Controls when the workflow will run
 on:
@@ -23,8 +23,24 @@ jobs:
       - uses: actions/checkout@v4
 
       # Runs a single command using the runners shell
-      - name: Build runner binary
+      - name: Cloning repo and Patching runner
         run: |
-          sudo mkdir -p /var/tmp/imagegeneration/
-          sudo cp patches/runner-main-sdk8-$(uname -m).patch /var/tmp/imagegeneration/runner-sdk-8.patch
-          sudo sh -c "images/ubuntu/scripts/build/configure-runner.sh"
+          cd /tmp
+          git clone --tags -q https://github.com/actions/runner.git
+          cd runner
+          git checkout $(git tag --sort=-v:refname | grep '^v[0-9]' | head -n1)
+          git apply --whitespace=nowarn /var/tmp/imagegeneration/runner-sdk-8.patch
+          sed -i'' -e '/version/s/8......"$/8.0.100"/' src/global.json
+      
+      - name: Building runner binary
+        run: |
+          cd /tmp/runner/src
+          ./dev.sh layout Release
+          ./dev.sh package Release
+          ./dev.sh test Release
+      
+      - name: Installing runner
+        run: |
+          mkdir -p /opt/runner
+          tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner
+          /opt/runner/config.sh --version

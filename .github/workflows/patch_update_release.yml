@@ -1,0 +1,114 @@
+name: Update Runner Patches (Release-to-Release)
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'patches/runner-sdk8-*.patch'
+
+jobs:
+  update-patches:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout your repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Git identity
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Clone upstream runner repository
+      run: git clone --tags https://github.com/actions/runner.git upstream-runner
+
+    - name: Get release tags
+      id: get-tags
+      run: |
+        cd upstream-runner
+        # Get latest two release tags
+        mapfile -t TAGS < <(git tag --sort=-v:refname | grep '^v[0-9]' | head -n2)
+        LATEST_TAG=${TAGS[0]}
+        PREVIOUS_TAG=${TAGS[1]-}
+        
+        echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
+        echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+        echo "LATEST_COMMIT=$(git rev-parse $LATEST_TAG)" >> $GITHUB_OUTPUT
+
+    - name: Verify previous release exists
+      if: steps.get-tags.outputs.PREVIOUS_TAG == ''
+      run: |
+        echo "No previous release found - skipping"
+        exit 0
+
+    - name: Process architectures
+      if: steps.get-tags.outputs.PREVIOUS_TAG != ''
+      id: process-arches
+      run: |
+        mkdir -p patches
+        touch successful_arches.txt
+        
+        for arch in ppc64le s390x x86_64; do
+          echo "Processing $arch..."
+          cd upstream-runner
+          
+          # Reset to clean state
+          git reset --hard
+          git clean -fd
+          
+          # Check if previous patch exists
+          if [ ! -f "../patches/runner-sdk8-$arch.patch" ] || \
+             ! grep -q "${{ steps.get-tags.outputs.PREVIOUS_TAG }}" "../patches/runner-sdk8-$arch.patch"; then
+            echo "No valid previous patch for $arch"
+            cd ..
+            continue
+          fi
+
+          # Apply previous patch to previous release
+          git checkout ${{ steps.get-tags.outputs.PREVIOUS_TAG }}
+          if ! git apply --check --whitespace=nowarn "../patches/runner-sdk8-$arch.patch"; then
+            echo "::warning::Previous patch (${{ steps.get-tags.outputs.PREVIOUS_TAG }}) application failed for $arch"
+            cd ..
+            continue
+          fi
+          git apply --whitespace=nowarn "../patches/runner-sdk8-$arch.patch"
+          
+          # Stash changes
+          git stash push -m "patch-$arch"
+          
+          # Apply to latest release
+          git checkout ${{ steps.get-tags.outputs.LATEST_TAG }}
+          if ! git stash apply stash^{/patch-$arch}; then
+            echo "::warning::Stash application failed for $arch on ${{ steps.get-tags.outputs.LATEST_TAG }}"
+            git reset --hard
+            git stash drop || true
+            cd ..
+            continue
+          fi
+          
+          # Create new patch
+          git diff --patch --ignore-space-at-eol > "../patches/runner-sdk8-$arch.patch"
+          echo "# From upstream release: ${{ steps.get-tags.outputs.LATEST_TAG }}" >> "../patches/runner-sdk8-$arch.patch"
+          
+          # Cleanup
+          git reset --hard
+          git stash drop || true
+          cd ..
+          
+          echo "$arch" >> successful_arches.txt
+        done
+
+        # Set output for successful architectures
+        if [ -s successful_arches.txt ]; then
+          echo "successful_arches=$(paste -sd, successful_arches.txt)" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Commit and push successful patches
+      if: steps.process-arches.outputs.successful_arches != ''
+      run: |
+        git add patches/runner-sdk8-*.patch
+        git commit -m "Update patches: ${{ steps.get-tags.outputs.PREVIOUS_TAG }} → ${{ steps.get-tags.outputs.LATEST_TAG }} [${{ steps.process-arches.outputs.successful_arches }}]"
+        git push
