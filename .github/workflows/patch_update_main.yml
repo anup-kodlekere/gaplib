@@ -137,4 +137,5 @@ jobs:
         git add patches/runner-main-sdk8-*.patch
         git add patches/last_processed_commit.txt
         git commit -m "Update patches: ${{ steps.get-commits.outputs.PREVIOUS_COMMIT_SHORT }} → ${{ steps.get-commits.outputs.LATEST_COMMIT_SHORT }} [${{ steps.process-arches.outputs.successful_arches }}]"
+        git pull --rebase origin $(git branch --show-current)
         git push
