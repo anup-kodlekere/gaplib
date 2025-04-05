@@ -41,9 +41,12 @@ jobs:
         # Get previous processed commit
         if [ -f ../patches/last_processed_commit.txt ]; then
           PREVIOUS_COMMIT=$(cat ../patches/last_processed_commit.txt)
+          PREVIOUS_COMMIT_SHORT="${PREVIOUS_COMMIT:0:7}"
           echo "PREVIOUS_COMMIT=$PREVIOUS_COMMIT" >> $GITHUB_OUTPUT
+          echo "PREVIOUS_COMMIT_SHORT=$PREVIOUS_COMMIT_SHORT" >> $GITHUB_OUTPUT
         else
           echo "PREVIOUS_COMMIT=" >> $GITHUB_OUTPUT
+          echo "PREVIOUS_COMMIT_SHORT=" >> $GITHUB_OUTPUT
         fi
 
     - name: Check for new commits
@@ -133,5 +136,5 @@ jobs:
       run: |
         git add patches/runner-main-sdk8-*.patch
         git add patches/last_processed_commit.txt
-        git commit -m "Update patches: ${{ steps.get-commits.outputs.PREVIOUS_COMMIT:0:7 }} → ${{ steps.get-commits.outputs.LATEST_COMMIT_SHORT }} [${{ steps.process-arches.outputs.successful_arches }}]"
+        git commit -m "Update patches: ${{ steps.get-commits.outputs.PREVIOUS_COMMIT_SHORT }} → ${{ steps.get-commits.outputs.LATEST_COMMIT_SHORT }} [${{ steps.process-arches.outputs.successful_arches }}]"
         git push
