@@ -7,6 +7,7 @@ on:
   push:
     paths:
       - 'patches/runner-sdk8-*.patch'
+      - 'patches/last_processed_tag.txt'
 
 jobs:
   update-patches:
@@ -29,23 +30,36 @@ jobs:
       id: get-tags
       run: |
         cd upstream-runner
-        # Get latest two release tags
-        mapfile -t TAGS < <(git tag --sort=-v:refname | grep '^v[0-9]' | head -n2)
-        LATEST_TAG=${TAGS[0]}
-        PREVIOUS_TAG=${TAGS[1]-}
-        
+        # Get latest release tag
+        LATEST_TAG=$(git tag --sort=-v:refname | grep '^v[0-9]' | head -n1)
         echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
-        echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
         echo "LATEST_COMMIT=$(git rev-parse $LATEST_TAG)" >> $GITHUB_OUTPUT
+        
+        # Get previous processed tag
+        if [ -f ../patches/last_processed_tag.txt ]; then
+          PREVIOUS_TAG=$(cat ../patches/last_processed_tag.txt)
+          echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+        else
+          echo "PREVIOUS_TAG=" >> $GITHUB_OUTPUT
+        fi
 
-    - name: Verify previous release exists
-      if: steps.get-tags.outputs.PREVIOUS_TAG == ''
+    - name: Check for new release
+      if: steps.get-tags.outputs.PREVIOUS_TAG == steps.get-tags.outputs.LATEST_TAG
       run: |
-        echo "No previous release found - skipping"
+        echo "No new releases - skipping"
         exit 0
 
+    - name: Verify previous release exists
+      if: steps.get-tags.outputs.PREVIOUS_TAG != '' && steps.get-tags.outputs.PREVIOUS_TAG != steps.get-tags.outputs.LATEST_TAG
+      run: |
+        cd upstream-runner
+        if ! git rev-parse ${{ steps.get-tags.outputs.PREVIOUS_TAG }} >/dev/null 2>&1; then
+          echo "Previous tag ${{ steps.get-tags.outputs.PREVIOUS_TAG }} not found"
+          exit 1
+        fi
+
     - name: Process architectures
-      if: steps.get-tags.outputs.PREVIOUS_TAG != ''
+      if: steps.get-tags.outputs.PREVIOUS_TAG != '' && steps.get-tags.outputs.PREVIOUS_TAG != steps.get-tags.outputs.LATEST_TAG
       id: process-arches
       run: |
         mkdir -p patches
@@ -70,7 +84,7 @@ jobs:
           # Apply previous patch to previous release
           git checkout ${{ steps.get-tags.outputs.PREVIOUS_TAG }}
           if ! git apply --check --whitespace=nowarn "../patches/runner-sdk8-$arch.patch"; then
-            echo "::warning::Previous patch (${{ steps.get-tags.outputs.PREVIOUS_TAG }}) application failed for $arch"
+            echo "::warning::Previous patch application failed for $arch"
             cd ..
             continue
           fi
@@ -106,9 +120,15 @@ jobs:
           echo "successful_arches=$(paste -sd, successful_arches.txt)" >> $GITHUB_OUTPUT
         fi
 
-    - name: Commit and push successful patches
+    - name: Update tag reference
+      if: steps.process-arches.outputs.successful_arches != ''
+      run: |
+        echo "${{ steps.get-tags.outputs.LATEST_TAG }}" > patches/last_processed_tag.txt
+
+    - name: Commit and push changes
       if: steps.process-arches.outputs.successful_arches != ''
       run: |
         git add patches/runner-sdk8-*.patch
+        git add patches/last_processed_tag.txt
         git commit -m "Update patches: ${{ steps.get-tags.outputs.PREVIOUS_TAG }} → ${{ steps.get-tags.outputs.LATEST_TAG }} [${{ steps.process-arches.outputs.successful_arches }}]"
         git push
