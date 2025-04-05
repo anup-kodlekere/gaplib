@@ -30,7 +30,7 @@ build_image() {
         return 1
     fi
     echo "Building Docker image for ${IMAGE_OS} version ${IMAGE_VERSION}..."
-    docker build -f "$dockerfile" \
+    docker build --no-cache -f "$dockerfile" \
         --build-arg RUNNERPATCH="../patches/${PATCH_FILE}" \
         --build-arg ARCH="${ARCH}" \
         --tag "runner:${IMAGE_OS}.${IMAGE_VERSION}" .
