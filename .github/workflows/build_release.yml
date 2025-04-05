@@ -1,0 +1,48 @@
+name: Build runner binary (Release)
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main"]
+  pull_request:
+    branches: [ "main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: [ubuntu-24.04-s390x, ubuntu-24.04-ppc64le]
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Cloning repo and Patching runner
+        run: |
+          mkdir -p /var/tmp/imagegeneration/
+          cp patches/runner-sdk8-$(uname -m).patch /var/tmp/imagegeneration/runner-sdk-8.patch
+          cd /tmp
+          git clone --tags -q https://github.com/actions/runner.git
+          cd runner
+          git checkout $(git tag --sort=-v:refname | grep '^v[0-9]' | head -n1)
+          git apply --whitespace=nowarn /var/tmp/imagegeneration/runner-sdk-8.patch
+          sed -i'' -e '/version/s/8......"$/8.0.100"/' src/global.json
+      
+      - name: Building runner binary
+        run: |
+          cd /tmp/runner/src
+          sudo ./dev.sh layout Release
+          sudo ./dev.sh package Release
+          sudo ./dev.sh test Release
+      
+      - name: Installing runner
+        run: |
+          mkdir -p /opt/runner
+          tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner
+          /opt/runner/config.sh --version

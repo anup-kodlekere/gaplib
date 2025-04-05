@@ -19,4 +19,4 @@ DEBIAN_FRONTEND="noninteractive"
 INSTALLER_SCRIPT_FOLDER="${installer_script_folder}"
 DOCKERHUB_PULL_IMAGES="NO"
 
-PATCH_FILE="${PATCH_FILE:-runner-main-sdk8-${ARCH}.patch}"
+PATCH_FILE="${PATCH_FILE:-runner-sdk8-${ARCH}.patch}"

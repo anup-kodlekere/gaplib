@@ -1,7 +1,9 @@
 #!/bin/bash
 
+set -euo pipefail 
+
 header() {
-    TS=$(date +"%Y-%m-%dT%H:%M:%S%:z")
+    TS=`date +"%Y-%m-%dT%H:%M:%S%:z"`
     echo "${TS} +--------------------------------------------+"
     echo "${TS} | $*"
     echo "${TS} +--------------------------------------------+"
@@ -9,18 +11,17 @@ header() {
 }
 
 msg() {
-    echo $(date +"%Y-%m-%dT%H:%M:%S%:z") $*
+    echo `date +"%Y-%m-%dT%H:%M:%S%:z"` $*
 }
 
 patch_runner() {
     header "Cloning repo and Patching runner"
     cd /tmp
-    git clone -q ${RUNNERREPO}
+    git clone --tags -q "${RUNNERREPO}"
     cd runner
-    git checkout main -b build
-    git apply --allow-empty /imagegeneration/runner-sdk-8.patch
-    sed -i'' -e /version/s/8......\"$/8.0.100\"/ src/global.json
-    return $?
+    git checkout $(git tag --sort=-v:refname | grep '^v[0-9]' | head -n1)
+    git apply --whitespace=nowarn /var/tmp/imagegeneration/runner-sdk-8.patch
+    sed -i'' -e '/version/s/8......"$/8.0.100"/' src/global.json
 }
 
 build_runner() {
@@ -28,33 +29,28 @@ build_runner() {
     header "Building runner binary"
     cd src
 
-    msg "dev layout"
-    ./dev.sh layout Release 
+    msg "Running dev layout"
+    ./dev.sh layout Release
 
-    if [ $? -eq 0 ]; then
-        msg "dev package"
-        ./dev.sh package Release 
+    msg "Creating package"
+    ./dev.sh package Release
 
-        if [ $? -eq 0 ]; then
-            msg "Finished building runner binary"
-
-            msg "Running tests"
-            ./dev.sh test Release 
-        fi
-    fi
-
-    return $?
+    msg "Running tests"
+    ./dev.sh test Release 
 }
 
 install_runner() {
     header "Installing runner"
     sudo mkdir -p /opt/runner
     sudo tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner
-    if [ $? -eq 0 ]; then
-        sudo chown runner:runner -R /opt/runner
-        sudo -u runner /opt/runner/config.sh --version
+
+    # Create runner user if not exists
+    if ! id -u runner >/dev/null 2>&1; then
+        sudo useradd -r -m -L -d /home/runner -s /bin/bash runner
     fi
-    return $?
+
+    sudo chown -R runner:runner /opt/runner
+    sudo -u runner /opt/runner/config.sh --version
 }
 
 pre_cleanup() {
@@ -62,42 +58,29 @@ pre_cleanup() {
 }
 
 post_cleanup() {
-    sudo rm -rf /home/runner/build-image.sh /imagegeneration/runner-sdk-8.patch \
-           /tmp/preseed-yaml /home/runner/.nuget \
+    sudo rm -rf /var/tmp/imagegeneration/runner-sdk-8.patch \
+           /tmp/preseed-yaml /home/ubuntu/.nuget \
            /home/runner/.local/share
 }
 
 run() {
     pre_cleanup
     patch_runner
-    RC=$?
-    if [ ${RC} -eq 0 ]; then
-        build_runner
-        RC=$?
-        if [ ${RC} -eq 0 ]; then
-            install_runner
-            RC=$?
-        fi
-    fi
+    build_runner
+    install_runner
     post_cleanup
-    return ${RC}
 }
 
-export HOME=/home/runner
 ARCH=$(uname -m)
 RUNNERREPO="https://github.com/actions/runner"
-while getopts "a:" opt
-do
+
+# Parse arguments
+while getopts "a:" opt; do
     case ${opt} in
-        a)
-            RUNNERREPO=${OPTARG}
-            ;;
-        *)
-            exit 4
-            ;;
+        a) RUNNERREPO=${OPTARG} ;;
+        *) exit 1 ;;
     esac
 done
 shift $(( OPTIND - 1 ))
 
-run "$@"
-exit $?
+run 
