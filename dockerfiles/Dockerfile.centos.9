@@ -1,11 +1,12 @@
-FROM    quay.io/centos/centos:stream9
+# FROM    quay.io/centos/centos:stream9
+FROM    almalinux:9
 
 ARG     RUNNERREPO="https://github.com/actions/runner" RUNNERPATCH SDK=8 SDK_VERSION ARCH
 
 RUN     echo "tsflags=nodocs" >>/etc/dnf/dnf.conf
 
 RUN     dnf update -y -q && \
-        dnf install -y -q wget git which langpacks-en glibc-all-langpacks sudo
+        dnf install -y -q wget git which langpacks-en glibc-all-langpacks sudo shadow-utils tar
         
 RUN     dnf install -y -q dotnet-sdk-${SDK}.0 && \
         SDK_VERSION=`dotnet --version` && \
@@ -33,7 +34,7 @@ RUN     useradd -c 'Action Runner' -m -s /bin/bash runner && \
 
 RUN     mkdir -p /opt/runner && \
         tar -xf /tmp/runner/_package/*.tar.gz -C /opt/runner && \
-        chown -R  runner: runner /opt/runner && \
+        chown -R  runner:runner /opt/runner && \
         su -c "/opt/runner/config.sh --version"  runner
 
 RUN     dnf install -y -q cmake make automake autoconf m4 gcc gcc-c++ libtool epel-release
