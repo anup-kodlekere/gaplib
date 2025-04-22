@@ -30,7 +30,7 @@ build_image() {
         return 1
     fi
     echo "Building Podman image for ${IMAGE_OS} version ${IMAGE_VERSION}..."
-    podman build -f "$dockerfile" \
+    podman build --no-cache -f "$dockerfile" \
         --build-arg RUNNERPATCH="../patches/${PATCH_FILE}" \
         --build-arg ARCH="${ARCH}" \
         --tag "runner:${IMAGE_OS}.${IMAGE_VERSION}" .
